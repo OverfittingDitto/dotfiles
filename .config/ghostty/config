@@ -24,4 +24,5 @@ macos-option-as-alt = true
 term = xterm-256color
 
 # Shell: tmuxセッションに自動アタッチ、なければ新規作成
-command = /bin/zsh -l -c "/opt/homebrew/bin/tmux new-session -A -s main"
+# tmux はPATHから解決する (macOS Apple Silicon の絶対パス決め打ちを避ける)
+command = /bin/zsh -l -c "tmux new-session -A -s main"

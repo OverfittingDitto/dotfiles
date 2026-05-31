@@ -1,7 +1,8 @@
 # Setup fzf
 # ~/.config/fzf/fzf.zsh
 # ---------
-if [[ ! "$PATH" == */opt/homebrew/opt/fzf/bin* ]]; then
+# macOS Homebrew でインストールされた場合に限り PATH に追加 (Linux/WSL では不要)
+if [ -d /opt/homebrew/opt/fzf/bin ] && [[ ! "$PATH" == */opt/homebrew/opt/fzf/bin* ]]; then
   PATH="${PATH:+${PATH}:}/opt/homebrew/opt/fzf/bin"
 fi
 
