@@ -1,0 +1,13 @@
+[user]
+	name = overfittingditto
+	email = overfittingditto@gmail.com
+
+[init]
+	defaultBranch = main
+
+[ghq]
+    root = /Users/katadai/src/
+    user = OverfittingDitto
+
+[url "git@github.com:"]
+	insteadOf = https://github.com/
