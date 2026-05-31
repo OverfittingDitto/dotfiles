@@ -1,0 +1,69 @@
+# `sheldon` configuration file
+
+shell = "zsh"
+
+# テンプレート定義は、可読性のためpluginsセクションの前に置くのが一般的
+[templates]
+defer = "{{ hooks?.pre | nl }}{% for file in files %}zsh-defer source \"{{ file }}\"\n{% endfor %}{{ hooks?.post | nl }}"
+
+[plugins]
+
+# zsh-deferは、遅延読み込みの仕組みそのものなので、必ず最初に定義する
+[plugins.zsh-defer]
+github = "romkatv/zsh-defer"
+
+
+[plugins.compinit]
+inline = """
+autoload -Uz compinit
+zsh-defer -a -t0.01 compinit -d "$XDG_CACHE_HOME/zsh/zcompdump"
+"""
+
+# --- 補完・サジェスト系 ---
+
+[plugins.zsh-completions]
+github = "zsh-users/zsh-completions"
+apply = ["defer"] # 補完定義は重いことが多いので、遅延読み込みが効果的
+
+[plugins.zsh-autosuggestions]
+github = "zsh-users/zsh-autosuggestions"
+apply = ["defer"]
+
+
+
+# --- シンタックスハイライト ---
+
+[plugins.fast-syntax-highlighting]
+github = "zdharma-continuum/fast-syntax-highlighting"
+apply = ["defer"]
+
+# [plugins.zsh-syntax-highlighting]
+# github = "zsh-users/zsh-syntax-highlighting"
+# apply = ["defer"]
+
+[plugins.zsh-history-substring-search]
+github = "zsh-users/zsh-history-substring-search"
+hooks.post = """
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+"""
+apply = ["defer"]
+
+
+# [plugins.zsh-autocomplete]
+# github = "marlonrichert/zsh-autocomplete"
+# apply = ["defer"]
+
+
+# load before fast-syntax-highlighting and zsh-autosuggestions
+# load after compinit
+# [plugins.fzf-tab]
+# github = "Aloxaf/fzf-tab"
+# apply = ["defer"]
+
+
+# hooks.post = """
+# zstyle ':autocomplete:*' widget-style fzf-tab
+# bindkey "^I" my-fzf-tab
+# bindkey "$terminfo[kcbt]" my-fzf-tab
+# """

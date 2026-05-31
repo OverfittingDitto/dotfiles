@@ -1,0 +1,79 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "collaboration_panel": {
+    "dock": "left"
+  },
+  "agent": {
+    "dock": "right",
+    "favorite_models": [],
+    "model_parameters": []
+  },
+  "git_panel": {
+    "dock": "left"
+  },
+  "which_key": {
+    "enabled": true
+  },
+  "edit_predictions": {
+    "mode": "eager"
+  },
+  "outline_panel": {
+    "dock": "left",
+    "auto_fold_dirs": false
+  },
+  "terminal": {
+    "option_as_meta": true
+  },
+  "project_panel": {
+    "dock": "left",
+    "auto_fold_dirs": false,
+    "default_width": 240.0
+  },
+  "bottom_dock_layout": "contained",
+  "tabs": {
+    "file_icons": true
+  },
+  "title_bar": {
+    "show_branch_icon": true
+  },
+  "prettier": {
+    "allowed": false
+  },
+  "lsp_document_colors": "inlay",
+  "always_treat_brackets_as_autoclosed": false,
+  "indent_guides": {
+    "line_width": 1,
+    "active_line_width": 3,
+    "background_coloring": "disabled",
+    "coloring": "indent_aware"
+  },
+  "soft_wrap": "editor_width",
+  "toolbar": {
+    "code_actions": true
+  },
+  "relative_line_numbers": "enabled",
+  "autoscroll_on_clicks": false,
+  "ui_font_family": "HackGen35 Console NF",
+  "buffer_font_family": "HackGen35 Console NF",
+  "vim_mode": true,
+  "icon_theme": "Material Icon Theme",
+  "ui_font_size": 16,
+  "buffer_font_size": 16.0,
+  "theme": {
+    "mode": "system",
+    "light": "One Light",
+    "dark": "Catppuccin Frappé"
+  },
+  // "experimental.theme_overrides": {
+  //   "background.appearance": "blurred",
+  //   "background": "#00000000",
+  //   "editor.background": "#00000000"
+  // }
+}

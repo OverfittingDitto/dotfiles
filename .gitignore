@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor temp/swap files
+*.swp
+*.swo
+*~
+
+# Local-only / secrets
+*.local
+.env
+.env.*

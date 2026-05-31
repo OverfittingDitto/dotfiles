@@ -1,0 +1,27 @@
+# =============================================================================
+# Ghostty Config (migrated from Alacritty)
+# =============================================================================
+
+# Theme
+# theme = Catppuccin Macchiato
+theme = Catppuccin Frappe
+
+# Font
+font-family = HackGen35 Console NF
+font-size = 14
+font-thicken = true
+font-feature = -calt
+
+# Window
+background-opacity = 0.8
+window-padding-x = 10
+window-padding-y = 10
+
+# macOS: Option key as Alt (Alacritty の option_as_alt = "Both" に相当)
+macos-option-as-alt = true
+
+# Terminal type (tmux互換)
+term = xterm-256color
+
+# Shell: tmuxセッションに自動アタッチ、なければ新規作成
+command = /bin/zsh -l -c "/opt/homebrew/bin/tmux new-session -A -s main"

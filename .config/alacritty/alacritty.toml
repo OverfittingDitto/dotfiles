@@ -1,0 +1,30 @@
+[general]
+import = [
+    "~/.config/alacritty/themes/themes/catppuccin_frappe.toml"
+]
+
+[font]
+normal = {family = "HackGen35 Console NF", style = "Regular"}
+bold = {family = "HackGen35 Console NF", style = "Bold"}
+italic = {family = "HackGen35 Console NF", style = "Italic"}
+size = 14.0
+
+[window]
+dimensions = {columns = 120, lines = 35}
+opacity = 0.80
+# decorations = "Transparent"
+# decorations = "None"
+padding = {x = 10, y = 10}
+position = {x = 500, y = 200}
+# `Option`キーが押されたときの挙動を`Escape`に設定する
+# これにより、全ての`Option + (キー)`が`Esc + (キー)`としてシェルに送られる
+# windows_alt_logo_key = false # for windows only
+option_as_alt = "Both"
+
+[env]
+TERM = "tmux-256color"
+
+[terminal]
+# for wsl
+# shell =
+shell = {program = "/bin/zsh", args = ["-l" , "-c", "/opt/homebrew/bin/tmux a -t 0 || /opt/homebrew/bin/tmux -u",]}
