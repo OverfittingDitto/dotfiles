@@ -3,7 +3,7 @@
 # 方針: フラット (背景塗りなし) + Nerd Font アイコン + ターミナルパレット色
 
 "$schema" = 'https://starship.rs/config-schema.json'
-add_newline = false
+add_newline = true
 
 # 1行目: 情報、2行目: プロンプト記号
 format = """
