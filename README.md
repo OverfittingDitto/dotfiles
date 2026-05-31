@@ -96,3 +96,7 @@ BINARY_AS=(
 ## メモ
 
 - Starshipは `~/.config/starship.toml` の直置きを避けるため、`STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"` を `.zshrc` で指定してサブディレクトリ管理にしています。
+- miseは作業ディレクトリから `.config/mise/config.toml` をproject-level configとして検出するため、`~/dotfiles/` で作業すると未信頼エラーが出ます。初回セットアップ後に以下を実行してください:
+  ```sh
+  mise trust ~/dotfiles/.config/mise/config.toml
+  ```
