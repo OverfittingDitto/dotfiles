@@ -58,6 +58,21 @@ let s:vimrc_dir = fnamemodify(resolve(expand('<sfile>:p')), ':h')
 let &runtimepath = s:vimrc_dir . ',' . &runtimepath
 silent! colorscheme catppuccin_frappe
 
+" ターミナル背景の透過を維持するため、編集領域の塗りつぶしを無効化
+" (Ghostty/Alacritty の background-opacity を活かすのが目的)
+function! ClearBackgrounds() abort
+  hi Normal       guibg=NONE ctermbg=NONE
+  hi NormalNC     guibg=NONE ctermbg=NONE
+  hi SignColumn   guibg=NONE ctermbg=NONE
+  hi LineNr       guibg=NONE ctermbg=NONE
+  hi EndOfBuffer  guibg=NONE ctermbg=NONE
+endfunction
+augroup TransparentBg
+  autocmd!
+  autocmd ColorScheme,VimEnter * call ClearBackgrounds()
+augroup END
+call ClearBackgrounds()
+
 " ===== 不可視文字 (インデント・末尾空白を可視化) =====
 set list
 set listchars=tab:▏\ ,trail:·,nbsp:␣,extends:»,precedes:«
