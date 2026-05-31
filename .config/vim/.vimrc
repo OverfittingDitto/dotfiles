@@ -1,5 +1,5 @@
-" simple_vimrc — nvim config から移植した持ち運び用 vimrc
-" 使い方: vim -u /path/to/simple_vimrc <file>
+" simple_vimrc — nvim 設定からプラグイン依存を排除して持ち運び用にしたvimrc
+" 使い方: vim -u /path/to/.vimrc <file>
 "         または ~/.vimrc にコピーして使う
 
 " ===== シンタックスハイライト =====
@@ -13,8 +13,10 @@ set fileencoding=utf-8
 " ===== 基本設定 =====
 set noswapfile          " スワップファイルを作らない
 set hidden              " 未保存バッファのまま他バッファへ切り替え可
+set autoread            " 外部で変更されたファイルを自動再読込
 set background=dark
 set mouse=a             " 全モードでマウス有効
+set virtualedit=block   " ビジュアルブロックでカーソルを範囲外に置ける
 
 " ===== 検索 =====
 set hlsearch            " 検索結果をハイライト
@@ -30,7 +32,11 @@ set autoindent
 
 " ===== 表示 =====
 set number              " 行番号
+set relativenumber      " 相対行番号
 set cursorline          " カーソル行ハイライト
+if has('patch-8.1.1564')
+  set signcolumn=yes    " サインカラムを常に表示 (vim 8.1.1564+)
+endif
 set wrap                " 折り返し表示
 set showmatch           " 対応括弧をハイライト
 set matchtime=1         " 括弧ハイライトの時間 (100ms)
@@ -50,12 +56,11 @@ if has('clipboard')
   set clipboard=unnamed,unnamedplus
 endif
 
-" ===== ファイラー (netrw) =====
-let g:netrw_liststyle = 3    " ツリー表示
+" ===== ファイラー (netrw — Oil 風に現在のウィンドウで開く) =====
 let g:netrw_banner = 0       " 上部バナーを非表示
-let g:netrw_winsize = 25     " Vex の幅を25%に
-let g:netrw_browse_split = 4 " ファイルを前のウィンドウ(右側)で開く
-let g:netrw_altv = 0         " Vex を左側に開く
+let g:netrw_liststyle = 0    " シンプルなリスト表示 (Oil 風)
+let g:netrw_hide = 0         " 隠しファイルも表示
+let g:netrw_list_hide = ''
 
 " :find をサブディレクトリ対応にする
 set path+=**
@@ -84,8 +89,9 @@ set tabline=%!MyTabLine()
 " ===== キーマップ =====
 let mapleader = " "
 
-" Insert モードで jj → Esc
+" Insert モードで jj → Esc, C-c も Esc 完全互換
 inoremap jj <Esc>
+inoremap <C-c> <Esc>
 
 " Insert モードでのカーソル移動
 inoremap <C-k> <Up>
@@ -96,9 +102,20 @@ inoremap <C-l> <Right>
 " x はレジスタを汚さずに削除
 nnoremap x "_x
 
+" ビジュアルでペーストしたとき、ヤンク履歴を汚さない
+xnoremap p "_dP
+
 " 折り返し行を1行として j/k 移動
 nnoremap j gj
 nnoremap k gk
+
+" 半ページスクロール時にカーソルを画面中央に保つ
+nnoremap <C-d> <C-d>zz
+nnoremap <C-u> <C-u>zz
+
+" 検索の前後移動時にカーソルを中央に保ち、折りたたみを展開する
+nnoremap n nzzzv
+nnoremap N Nzzzv
 
 " Shift-H/L で行頭・行末
 nnoremap H ^
@@ -106,43 +123,55 @@ vnoremap H ^
 nnoremap L $
 vnoremap L $
 
-" +/- で数値のインクリメント・デクリメント
-nnoremap + <C-a>
-nnoremap - <C-x>
-
 " ウィンドウ分割
-nnoremap <Leader>s :split<CR><C-w>w
-nnoremap <Leader>v :vsplit<CR><C-w>w
+nnoremap <silent> <Leader>s :split<CR><C-w>w
+nnoremap <silent> <Leader>v :vsplit<CR><C-w>w
 
 " ウィンドウ間の移動
-nnoremap <Leader>h <C-w>h
-nnoremap <Leader>j <C-w>j
-nnoremap <Leader>k <C-w>k
-nnoremap <Leader>l <C-w>l
+nnoremap <silent> <Leader>h <C-w>h
+nnoremap <silent> <Leader>j <C-w>j
+nnoremap <silent> <Leader>k <C-w>k
+nnoremap <silent> <Leader>l <C-w>l
 
 " バッファ移動
-nnoremap <Leader>p :bprevious<CR>
-nnoremap <Leader>n :bnext<CR>
-nnoremap <Leader>x :bdelete<CR>
+nnoremap <silent> <Leader>p :bprevious<CR>
+nnoremap <silent> <Leader>n :bnext<CR>
+nnoremap <silent> <Leader>x :bdelete<CR>
 
-" 検索ハイライトを消す
-nnoremap <Esc><Esc> :nohlsearch<CR>
+" 検索ハイライトを消す (Esc 1回)
+nnoremap <silent> <Esc> :nohlsearch<CR>
 
-" ファイラーをサイドバーで開く/閉じるトグル
-function! ToggleNetrw()
-  for i in range(1, winnr('$'))
-    if getwinvar(i, '&filetype') ==# 'netrw'
-      execute i . 'wincmd w'
-      close
-      return
-    endif
-  endfor
-  Vexplore
+" カーソル下の単語をファイル全体で一括置換（入力待ち状態にする）
+nnoremap <Leader>%s :%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>
+
+" `-` で現在のディレクトリをカレントウィンドウに開く (Oil 風)
+" 戻るときは netrw 内で `-` (親ディレクトリへ) を使う
+nnoremap <silent> - :Explore<CR>
+
+" ターミナルをトグル開閉 (nvim の toggleterm.nvim と同じ <C-j>)
+" バッファ状態を保持して再表示。vim には floating window で terminal を
+" focus する手段が乏しいため、下部分割で代替する。
+let s:term_bufnr = -1
+function! ToggleTerm()
+  " ターミナルバッファが既にウィンドウ表示中なら隠す
+  if s:term_bufnr > 0 && bufwinid(s:term_bufnr) > 0
+    call win_gotoid(bufwinid(s:term_bufnr))
+    hide
+    return
+  endif
+  " 既存バッファがあれば再利用、なければ新規作成
+  if s:term_bufnr > 0 && bufexists(s:term_bufnr)
+    execute 'botright sbuffer ' . s:term_bufnr
+    " 再表示時は terminal-job mode に戻す
+    normal! i
+  else
+    botright terminal
+    let s:term_bufnr = bufnr('%')
+  endif
 endfunction
-nnoremap <Leader>e :call ToggleNetrw()<CR>
 
-" ターミナルを下部に開く
-nnoremap <Leader>t :botright terminal<CR>
+nnoremap <silent> <C-j> :call ToggleTerm()<CR>
+tnoremap <silent> <C-j> <C-w>:call ToggleTerm()<CR>
 
 " ターミナルモードからノーマルモードへ
 tnoremap <C-\><C-n> <C-\><C-n>
