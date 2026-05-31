@@ -1,28 +1,28 @@
 # dotfiles
 
-個人用のdotfiles。`~/.config`配下と一部のホーム直下のdotfileを管理し、`setup.sh`でsymlinkを張ります。
+個人用のdotfiles。すべての設定をリポジトリ内の `.config/` に集約し、`setup.sh`でsymlinkを張ります。
 
 ## ディレクトリ構成
 
 ```
 .
-├── .config/        # ~/.config 配下の設定 (各サブディレクトリごとにsymlink)
-│   ├── alacritty/
-│   ├── nvim/
-│   ├── starship/
+├── .config/        # すべての設定をここに集約
+│   ├── alacritty/  # → ~/.config/alacritty (ディレクトリごとリンク)
+│   ├── nvim/       # → ~/.config/nvim
+│   ├── starship/   # → ~/.config/starship
+│   ├── zsh/        # → ~/.zshrc, ~/.zprofile (中のファイルをホーム直下にリンク)
+│   ├── vim/        # → ~/.vimrc
 │   └── ...
-├── zsh/            # ~/.zshrc, ~/.zprofile
-├── vim/            # ~/.vimrc
 ├── setup.sh        # symlinkセットアップスクリプト
 └── .gitignore
 ```
 
 **リンク規則:**
 
-| リポジトリ内のパス               | リンク先                  |
-| -------------------------------- | ------------------------- |
-| `dotfiles/.config/<name>/`       | `~/.config/<name>`        |
-| `dotfiles/<group>/<file>`        | `~/<file>`                |
+| リポジトリ内のパス               | リンク先                  | 備考                                |
+| -------------------------------- | ------------------------- | ----------------------------------- |
+| `dotfiles/.config/<name>/`       | `~/.config/<name>`        | デフォルト (ディレクトリごとリンク) |
+| `dotfiles/.config/<name>/<file>` | `~/<file>`                | `LINK_TO_HOME` に指定したフォルダ   |
 
 ## セットアップ
 
@@ -48,38 +48,42 @@ cd ~/dotfiles
 
 ## dotfileの追加
 
-### `~/.config/<tool>` を追加する
+### `~/.config/<tool>` を追加する (大多数のケース)
 
 1. `~/.config/<tool>` を `~/dotfiles/.config/<tool>` に移動
 2. `ln -s ~/dotfiles/.config/<tool> ~/.config/<tool>` でsymlinkを張る
 3. `git add .config/<tool> && git commit`
 
-次回以降は他マシンで `./setup.sh` を実行すれば反映されます。
+`setup.sh` はリポジトリ内のディレクトリを自動でスキャンするので、スクリプト本体の編集は不要です。
 
 ### ホーム直下のdotfileを追加する
 
-例: `~/.tmux.conf` をリポジトリで管理したい場合。
+例: `~/.tmux.conf` をリポジトリで管理したい場合 (本来は `~/.config/tmux/tmux.conf` 等で済むなら不要)。
 
-1. `~/dotfiles/<group>/` ディレクトリを作成 (例: `mkdir tmux`)
-2. ファイルを移動: `mv ~/.tmux.conf ~/dotfiles/tmux/.tmux.conf`
-3. symlink: `ln -s ~/dotfiles/tmux/.tmux.conf ~/.tmux.conf`
+1. `dotfiles/.config/<group>/` を作成し、ファイルを置く: `mv ~/.tmux.conf ~/dotfiles/.config/tmux-home/.tmux.conf`
+2. `setup.sh` の `LINK_TO_HOME` 配列にフォルダ名を追加: `tmux-home`
+3. `ln -s ~/dotfiles/.config/tmux-home/.tmux.conf ~/.tmux.conf`
 4. コミット
 
-`setup.sh` はリポジトリ内のディレクトリを自動でスキャンするので、スクリプト本体の編集は不要です。
+### 検出/リンクルールのカスタマイズ
 
-### 検出ルールのカスタマイズ
-
-`setup.sh` 内の `NO_BINARY` / `BINARY_AS` セクションを編集します。
+`setup.sh` 冒頭の設定テーブルを編集します。
 
 ```sh
-# 例: アーカイブのため検出スキップ
+# バイナリ検出をスキップ (アーカイブ等)
 NO_BINARY=(
   configarchive
 )
 
-# 例: フォルダ名とバイナリ名が異なるとき
+# フォルダ名とバイナリ名が違う
 BINARY_AS=(
-  code=code-insiders
+  vscode=code-insiders
+)
+
+# .config/<name>/ の中身を ~/ 直下にリンク
+LINK_TO_HOME=(
+  zsh
+  vim
 )
 ```
 

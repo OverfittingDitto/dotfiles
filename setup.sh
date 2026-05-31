@@ -97,24 +97,25 @@ skip() { printf '  %s•%s %s\n' "$DIM" "$RESET" "$*"; }      # スキップ
 
 
 # ============================================================================
-# ツール検出の設定 (新しいツールを追加するときに編集する)
+# 設定テーブル (新しいツールを追加するときはここを編集する)
 # ============================================================================
 #
 # 大前提:
-#   dotfiles 内のフォルダ名 == 実行コマンド名 (例: nvim フォルダ → nvim コマンド)
-#   この前提に当てはまるなら、下の配列を編集する必要はまったくない。
-#   フォルダを置けばスクリプトが自動で拾う。
+#   dotfiles/.config/<フォルダ名>/ をそのまま ~/.config/<フォルダ名> へリンクする。
+#   フォルダ名 == 実行コマンド名 (例: nvim フォルダ → nvim コマンド) であれば、
+#   下の配列は何も編集しなくて良い。フォルダを置くだけで自動で拾う。
 #
-# 例外を扱いたいときだけ、以下の2つの配列に追記する:
+# 例外を扱いたいときだけ、以下の配列に追記する:
 #
-#   NO_BINARY : フォルダ名に対応するバイナリが無いケース
-#               (アーカイブや、ツールではない設定群など)。
-#               ここに入れたフォルダは常にリンク対象になる。
+#   NO_BINARY    : フォルダ名に対応するバイナリが無い。常にリンク対象になる。
 #
-#   BINARY_AS : フォルダ名とバイナリ名が違うケース。
-#               書式: "フォルダ名=バイナリ名"
-#               例: VSCode Insiders を vscode フォルダで管理しているなら
-#                   "vscode=code-insiders"
+#   BINARY_AS    : フォルダ名とバイナリ名が違う。書式: "フォルダ名=バイナリ名"
+#                  例: "vscode=code-insiders"
+#
+#   LINK_TO_HOME : フォルダ「全体」を ~/.config/<name> にリンクするのではなく、
+#                  フォルダ内の各ファイルを ~/<ファイル名> へ個別にリンクする。
+#                  zsh / vim のように、本来ホーム直下に置くべき設定をリポジトリ
+#                  上は .config/ 配下に集約したい場合に使う。
 # ============================================================================
 
 NO_BINARY=(
@@ -123,6 +124,11 @@ NO_BINARY=(
 
 BINARY_AS=(
   # 例: code=code-insiders
+)
+
+LINK_TO_HOME=(
+  zsh                    # .config/zsh/.zshrc, .zprofile → ~/.zshrc, ~/.zprofile
+  vim                    # .config/vim/.vimrc            → ~/.vimrc
 )
 
 
@@ -240,34 +246,26 @@ add_plan() {
 
 
 # --- .config/<name>/ をスキャン --------------------------------------------
-# それぞれのサブディレクトリを ~/.config/<name> へリンクする計画として追加する。
+# 通常は ~/.config/<name> へディレクトリごとリンクする。
+# ただし LINK_TO_HOME に含まれるフォルダは、中のファイルを個別に ~/<ファイル名> へリンクする。
 if [ -d "$DOTFILES_DIR/.config" ]; then
   for src in "$DOTFILES_DIR/.config"/*; do
     [ -d "$src" ] || continue        # ディレクトリ以外はスキップ
     name="$(basename "$src")"
-    add_plan "$HOME/.config/$name" "$src" "$name"
+
+    if contains "$name" ${LINK_TO_HOME[@]+"${LINK_TO_HOME[@]}"}; then
+      # ファイル単位でホーム直下にリンク
+      for f in "$src"/*; do
+        [ -e "$f" ] || continue
+        [ -d "$f" ] && continue       # サブディレクトリは扱わない
+        add_plan "$HOME/$(basename "$f")" "$f" "$name"
+      done
+    else
+      # ディレクトリごと ~/.config/<name> にリンク
+      add_plan "$HOME/.config/$name" "$src" "$name"
+    fi
   done
 fi
-
-
-# --- トップレベルのグループフォルダをスキャン (zsh/, vim/ など) -----------
-# 各フォルダ直下のファイルを ~/<ファイル名> へリンクする。
-# ネストしたディレクトリは扱わない (シンプルさ優先)。
-for grp in "$DOTFILES_DIR"/*; do
-  [ -d "$grp" ] || continue
-  name="$(basename "$grp")"
-
-  # 既に .config で扱っている、または管理対象外のディレクトリはスキップ
-  case "$name" in
-    .config|.git|.github) continue ;;
-  esac
-
-  for f in "$grp"/*; do
-    [ -e "$f" ] || continue           # 存在しないものは無視
-    [ -d "$f" ] && continue           # サブディレクトリも無視 (直下のファイルのみ)
-    add_plan "$HOME/$(basename "$f")" "$f" "$name"
-  done
-done
 
 
 # --- 計画が空なら早期終了 ---------------------------------------------------
