@@ -87,6 +87,56 @@ LINK_TO_HOME=(
 )
 ```
 
+## 関連ツール
+
+このdotfilesで設定を管理しているツール、またはシェル設定から参照されているツールの一覧。括弧内はリポジトリ内のconfig所在 (無いものは外部依存のみ)。
+
+### ターミナル
+- **Ghostty** (`.config/ghostty/`) — macOSメインターミナル。Catppuccin Frappe + HackGen35
+- **Alacritty** (`.config/alacritty/`) — クロスプラットフォーム代替。Linux/WSL用候補として残置
+- **tmux** (`.config/tmux/`) — マルチプレクサ。プレフィックス `C-a`、`prefix g` で lazygit ポップアップ
+
+### シェル / プロンプト
+- **zsh** (`.config/zsh/`) — 標準シェル。`.zshrc`, `.zprofile`
+- **sheldon** (`.config/sheldon/`) — zshプラグインマネージャ
+- **starship** (`.config/starship/`) — クロスシェルプロンプト
+- sheldon経由のzshプラグイン: `zsh-defer`, `zsh-completions`, `zsh-autosuggestions`, `fast-syntax-highlighting`, `zsh-history-substring-search`
+
+### エディタ
+- **Neovim** (`.config/nvim/`) — メインエディタ。`vim.pack` でプラグイン管理、blink.cmp + LSP
+- **Vim** (`.config/vim/`) — 持ち運び用シンプル設定
+- **Zed** (`.config/zed/`) — GUIエディタ
+
+### パッケージ / バージョン管理
+- **Homebrew** — macOS / Linuxbrew パッケージマネージャ。`.zprofile` で自動 activate
+- **mise** (`.config/mise/`) — Go / Node / Python / Rust / pnpm / uv のランタイム管理
+
+### ファイル操作 (zshエイリアス)
+- **eza** — `ls` の代替。アイコンと Git ステータス表示
+- **dust** — `du` の代替。直感的な使用量表示
+- **trash** — `rm` の代替。macOSゴミ箱に移動 (`brew install trash`)
+- **zoxide** — `cd` の代替。アクセス頻度ベースで賢く移動
+- **bottom (btm)** — `top` の代替。リッチなシステムモニタ
+- **htop** (`.config/htop/`) — 従来のプロセスビューア
+- **oil.nvim** — Neovim組み込みファイラー
+
+### 検索
+- **fzf** (`.config/fzf/`) — ファジーファインダー。`Ctrl-T` / `Ctrl-R` / `Alt-C` 等
+- **ripgrep (rg)** — 高速 grep。`rf` 関数で fzf と組み合わせ対話検索
+- **fd** — 高速 find。fzf関数の内部で使用
+- **ghq** — git リポジトリ管理。`Ctrl-G` で fzf 検索 → cd
+- **bat** — `cat` の代替。シンタックスハイライト、fzf preview にも使用
+
+### Git
+- **git** — VCS本体
+- **lazygit** — git TUI。tmux内 `prefix g` でポップアップ
+- **gh** — GitHub CLI。リポジトリ作成、PR操作等
+- **delta** — diff/`git log` ビューア
+
+### 開発環境補助
+- **OrbStack** — macOS用 Docker 代替 + Linux VM。`.zprofile` でシェル統合
+- **Obsidian** — Markdownノート (CLI起動用に PATH 追加)
+
 ## 管理しないもの
 
 セキュリティや実用上の理由から、以下はリポジトリ管理外にしています:
