@@ -30,7 +30,7 @@ truncate_to_repo  = false
 home_symbol       = "~"
 read_only         = " "
 read_only_style   = "red"
-format            = "[$path$read_only](blue bold)"
+format            = "[$path$read_only](cyan bold)"
 
 # Git
 [git_branch]

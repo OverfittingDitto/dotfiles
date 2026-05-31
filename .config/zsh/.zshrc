@@ -186,6 +186,12 @@ fi
 
 # SSH状態をプロセスツリーで判定（Tmux経由の引き継ぎ・欠落を両方補正）
 _sync_ssh_env() {
+    # sshd がプロセスツリーを経由せず ProxyCommand で接続する場合
+    # (OrbStack, VSCode Remote SSH 等) は SSH_CONNECTION が sshd 側で
+    # セットされた状態で渡ってくるので、既にセットされていればそのまま信頼する。
+    if [[ -n "$SSH_CONNECTION" || -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]; then
+        return
+    fi
     if [[ -n "$TMUX" ]]; then
         # Tmux内: 新規WindowはTmuxサーバーの子プロセスなのでsshd検出不可。
         # tmuxのupdate-environmentがattach時にSSH_CONNECTIONを伝播するため信頼する。
