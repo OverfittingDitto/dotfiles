@@ -1,3 +1,128 @@
 # Starship prompt config
 # Docs: https://starship.rs/config/
-# Presets: https://starship.rs/presets/
+# Theme: Catppuccin Frappe + Nerd Font (HackGen35 Console NF 等)
+
+"$schema" = 'https://starship.rs/config-schema.json'
+add_newline = false
+palette     = "catppuccin_frappe"
+
+# 1行目: 情報カプセル / 2行目: プロンプト記号のみ
+format = """
+$hostname$directory$git_branch$git_status$nodejs$python$rust$golang$lua$cmd_duration
+$character"""
+
+# ---------------------------------------------------------------------------
+# プロンプト記号
+# ---------------------------------------------------------------------------
+[character]
+success_symbol = "[❯](green)"
+error_symbol   = "[❯](red)"
+
+[username]
+disabled = true
+
+# SSH 時だけ表示するホスト名カプセル
+[hostname]
+ssh_only = true
+format   = "[](mauve)[ 󰒍 $hostname ](bg:mauve fg:crust bold)[](mauve) "
+
+# ---------------------------------------------------------------------------
+# ディレクトリ
+# ---------------------------------------------------------------------------
+[directory]
+truncation_length        = 3
+truncation_symbol        = "…/"
+truncate_to_repo         = true
+read_only                = " "
+read_only_style          = "red"
+format = "[](blue)[  $path$read_only ](bg:blue fg:crust bold)[](blue)"
+
+# ---------------------------------------------------------------------------
+# Git (branch と status を分けて 2 カプセルに)
+# ---------------------------------------------------------------------------
+[git_branch]
+symbol = " "
+format = " [](peach)[ $symbol$branch ](bg:peach fg:crust)[](peach)"
+
+[git_status]
+format = " [](red)[ $all_status$ahead_behind ](bg:red fg:crust)[](red)"
+
+# ---------------------------------------------------------------------------
+# 言語バージョン (検出ファイルがある時だけ表示。普段はゼロコスト)
+# ---------------------------------------------------------------------------
+[nodejs]
+symbol       = " "
+format       = " [](green)[ $symbol$version ](bg:green fg:crust)[](green)"
+detect_files = ["package.json", ".nvmrc", ".node-version"]
+
+[python]
+symbol            = " "
+format            = " [](yellow)[ $symbol$version ](bg:yellow fg:crust)[](yellow)"
+detect_files      = ["pyproject.toml", "requirements.txt", "Pipfile", "uv.lock", "setup.py"]
+detect_extensions = ["py"]
+
+[rust]
+symbol = " "
+format = " [](peach)[ $symbol$version ](bg:peach fg:crust)[](peach)"
+
+[golang]
+symbol = " "
+format = " [](sapphire)[ $symbol$version ](bg:sapphire fg:crust)[](sapphire)"
+
+[lua]
+symbol = " "
+format = " [](mauve)[ $symbol$version ](bg:mauve fg:crust)[](mauve)"
+
+# ---------------------------------------------------------------------------
+# 直前コマンドの実行時間 (2秒以上のみ表示、装飾なしで控えめ)
+# ---------------------------------------------------------------------------
+[cmd_duration]
+min_time = 2000
+format   = " [ ⏱ $duration](yellow)"
+
+# ---------------------------------------------------------------------------
+# 重い/不要モジュールは明示的に無効化
+# ---------------------------------------------------------------------------
+[aws]
+disabled = true
+[gcloud]
+disabled = true
+[kubernetes]
+disabled = true
+[azure]
+disabled = true
+[terraform]
+disabled = true
+[package]
+disabled = true
+
+# ---------------------------------------------------------------------------
+# Catppuccin Frappe パレット
+# ---------------------------------------------------------------------------
+[palettes.catppuccin_frappe]
+rosewater = "#f2d5cf"
+flamingo  = "#eebebe"
+pink      = "#f4b8e4"
+mauve     = "#ca9ee6"
+red       = "#e78284"
+maroon    = "#ea999c"
+peach     = "#ef9f76"
+yellow    = "#e5c890"
+green     = "#a6d189"
+teal      = "#81c8be"
+sky       = "#99d1db"
+sapphire  = "#85c1dc"
+blue      = "#8caaee"
+lavender  = "#babbf1"
+text      = "#c6d0f5"
+subtext1  = "#b5bfe2"
+subtext0  = "#a5adce"
+overlay2  = "#949cbb"
+overlay1  = "#838ba7"
+overlay0  = "#737994"
+surface2  = "#626880"
+surface1  = "#51576d"
+surface0  = "#414559"
+base      = "#303446"
+mantle    = "#292c3c"
+crust     = "#232634"
