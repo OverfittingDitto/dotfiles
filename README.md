@@ -46,6 +46,21 @@ cd ~/dotfiles
 | `-a, --all`    | バイナリ未導入のツールも含めてすべてsymlinkを張る            |
 | `-h, --help`   | ヘルプを表示                                                 |
 
+### vimだけクイックインストール (持ち運び用)
+
+SSH先など git やシェル環境構築が難しいマシンで、`.vimrc` だけ持ち込みたい場合:
+
+```sh
+# 最小: vimrc のみ (colorscheme は desert にフォールバック)
+curl -sL https://raw.githubusercontent.com/OverfittingDitto/dotfiles/main/.config/vim/.vimrc -o ~/.vimrc
+
+# フル: catppuccin_frappe も入れる
+mkdir -p ~/.vim/colors
+curl -sL https://raw.githubusercontent.com/OverfittingDitto/dotfiles/main/.config/vim/colors/catppuccin_frappe.vim -o ~/.vim/colors/catppuccin_frappe.vim
+```
+
+vimrc は完全に外部依存なし (vim 9.0+ 推奨、古いvimでも自動で機能を縮退)。
+
 ## dotfileの追加
 
 ### `~/.config/<tool>` を追加する (大多数のケース)
