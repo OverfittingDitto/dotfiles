@@ -205,6 +205,8 @@ _sync_ssh_env
 unset -f _sync_ssh_env
 
 # プロンプト (starship)
+# ~/.config直下にtomlを置かれるのを避けてサブディレクトリに格納
+export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
 if command -v starship &>/dev/null; then
     eval "$(starship init zsh)"
 fi
