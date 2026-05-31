@@ -46,10 +46,21 @@ set cmdheight=1
 set visualbell          " ビープ音の代わりに画面フラッシュ
 set t_vb=               " 画面フラッシュも無効化 (完全無音)
 
-" True Color (ターミナルが対応している場合)
+" ===== カラースキーム =====
+" colors/catppuccin_frappe.vim を vimrc と同じディレクトリに置く構成。
+" シンボリックリンク経由でも実体の dotfiles リポジトリのパスを解決し、
+" そのディレクトリを runtimepath に追加する (~/.config/vim の有無に依存しない)。
+" カラースキームファイルは catppuccin/vim リポジトリから vendor (autoload 非依存)。
 if has('termguicolors')
   set termguicolors
 endif
+let s:vimrc_dir = fnamemodify(resolve(expand('<sfile>:p')), ':h')
+let &runtimepath = s:vimrc_dir . ',' . &runtimepath
+silent! colorscheme catppuccin_frappe
+
+" ===== 不可視文字 (インデント・末尾空白を可視化) =====
+set list
+set listchars=tab:▏\ ,trail:·,nbsp:␣,extends:»,precedes:«
 
 " クリップボード共有 (OS 対応時のみ)
 if has('clipboard')
@@ -64,6 +75,53 @@ let g:netrw_list_hide = ''
 
 " :find をサブディレクトリ対応にする
 set path+=**
+
+" ===== ステータスライン (lualine 相当 + モード別色付け) =====
+function! StatuslineMode() abort
+  let modes = {
+    \ 'n':  'NORMAL', 'i':  'INSERT', 'v':  'VISUAL', 'V':  'V-LINE',
+    \ "\<C-v>": 'V-BLOCK', 'c':  'COMMAND', 'R':  'REPLACE',
+    \ 't':  'TERM',   's':  'SELECT'
+    \ }
+  return get(modes, mode(), mode())
+endfunction
+
+" モード別ハイライト (catppuccin Frappe パレットから採色)
+function! SetupStatuslineColors() abort
+  hi StatusModeNormal  guifg=#232634 guibg=#8caaee gui=bold
+  hi StatusModeInsert  guifg=#232634 guibg=#a6d189 gui=bold
+  hi StatusModeVisual  guifg=#232634 guibg=#ca9ee6 gui=bold
+  hi StatusModeCommand guifg=#232634 guibg=#e78284 gui=bold
+  hi StatusModeReplace guifg=#232634 guibg=#ef9f76 gui=bold
+  hi StatusModeTerm    guifg=#232634 guibg=#e5c890 gui=bold
+endfunction
+
+" mode() の戻り値から対応する %#グループ名# を返す
+function! ModeHL() abort
+  let m = mode()
+  if m ==# 'n'                 | return '%#StatusModeNormal#'
+  elseif m ==# 'i'             | return '%#StatusModeInsert#'
+  elseif m =~# "[vV\<C-v>]"    | return '%#StatusModeVisual#'
+  elseif m ==# 'c'             | return '%#StatusModeCommand#'
+  elseif m ==# 'R'             | return '%#StatusModeReplace#'
+  elseif m ==# 't'             | return '%#StatusModeTerm#'
+  else                         | return '%#StatusModeNormal#'
+  endif
+endfunction
+
+" colorscheme 読み込み後に高ライト定義を上書き反映する
+augroup StatuslineColors
+  autocmd!
+  autocmd ColorScheme,VimEnter * call SetupStatuslineColors()
+augroup END
+call SetupStatuslineColors()
+
+" 左: [モードバッジ] / ファイル名 / 編集中マーク
+" 右: ファイルタイプ / エンコーディング / 行:列
+" %{% ... %} は評価結果を statusline 書式として再解釈させる構文
+set statusline=%{%ModeHL()%}\ %{StatuslineMode()}\ %#StatusLine#\ %f\ %m%r
+set statusline+=%=
+set statusline+=%y\ │\ %{&fileencoding!=''?&fileencoding:&encoding}\ │\ %3l:%-2c
 
 " ===== バッファ一覧をタブラインに常時表示 =====
 set showtabline=2
