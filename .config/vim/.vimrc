@@ -66,7 +66,12 @@ if has('termguicolors')
 endif
 let s:vimrc_dir = fnamemodify(resolve(expand('<sfile>:p')), ':h')
 let &runtimepath = s:vimrc_dir . ',' . &runtimepath
+
+" catppuccin_frappe が無い環境では desert (vim 全バージョン同梱) へフォールバック
 silent! colorscheme catppuccin_frappe
+if !exists('g:colors_name') || g:colors_name !=# 'catppuccin_frappe'
+  silent! colorscheme desert
+endif
 
 " ターミナル背景の透過を維持するため、編集領域の塗りつぶしを無効化
 " (Ghostty/Alacritty の background-opacity を活かすのが目的)
