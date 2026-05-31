@@ -12,3 +12,6 @@
 *.local
 .env
 .env.*
+
+# Zed prompts DB (binary, frequently mutated)
+.config/zed/prompts/prompts-library-db.*/
