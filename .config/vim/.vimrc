@@ -42,6 +42,16 @@ set showmatch           " 対応括弧をハイライト
 set matchtime=1         " 括弧ハイライトの時間 (100ms)
 set laststatus=2        " ステータスラインを常に表示
 set wildmenu            " コマンドライン補完メニュー
+set wildignorecase      " 補完で大文字小文字を区別しない
+if has('patch-9.0.181')
+  set wildoptions=pum,fuzzy   " ポップアップ表示 + ファジーマッチ (Telescope 風)
+elseif has('patch-8.2.4325')
+  set wildoptions=pum
+endif
+" :find / :grep が重くならないよう、よくある無関係ディレクトリは除外
+set wildignore+=*/.git/*,*/node_modules/*,*/dist/*,*/build/*,*/target/*
+set wildignore+=*/__pycache__/*,*/.venv/*,*/.cache/*
+set wildignore+=*.pyc,*.o,*.so,*.class,*.png,*.jpg,*.jpeg,*.gif,*.pdf
 set cmdheight=1
 set visualbell          " ビープ音の代わりに画面フラッシュ
 set t_vb=               " 画面フラッシュも無効化 (完全無音)
@@ -210,6 +220,16 @@ nnoremap <silent> <Leader>l <C-w>l
 nnoremap <silent> <Leader>p :bprevious<CR>
 nnoremap <silent> <Leader>n :bnext<CR>
 nnoremap <silent> <Leader>x :bdelete<CR>
+
+" ===== ファインダ (vim 組み込みのみで Telescope 風) =====
+" wildoptions=pum,fuzzy のおかげで Tab を押すとファジーマッチのポップアップが出る。
+" <Leader>ff/fb/fh はコマンドを開いた状態で待機。すぐに Tab で候補が出る。
+nnoremap <Leader>ff :find<Space>
+nnoremap <Leader>fb :buffer<Space>
+nnoremap <Leader>fh :help<Space>
+
+" プロジェクト全文検索: 入力したパターンで vimgrep → quickfix に表示
+nnoremap <Leader>fg :execute 'silent vimgrep /' . input('grep: ') . '/j **'<Bar>copen<CR>
 
 " 検索ハイライトを消す (Esc 1回)
 nnoremap <silent> <Esc> :nohlsearch<CR>
