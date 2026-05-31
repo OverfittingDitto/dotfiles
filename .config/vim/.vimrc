@@ -218,8 +218,13 @@ nnoremap <silent> <Esc> :nohlsearch<CR>
 nnoremap <Leader>%s :%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>
 
 " `-` で現在のディレクトリをカレントウィンドウに開く (Oil 風)
-" 戻るときは netrw 内で `-` (親ディレクトリへ) を使う
 nnoremap <silent> - :Explore<CR>
+
+" netrw 内では `-` を閉じる動作に上書き (デフォの "親ディレクトリへ" を ".." 選択に委譲)
+augroup NetrwCloseKey
+  autocmd!
+  autocmd FileType netrw nnoremap <silent> <buffer> - :Rexplore<CR>
+augroup END
 
 " ターミナルをトグル開閉 (nvim の toggleterm.nvim と同じ <C-j>)
 " バッファ状態を保持して再表示。vim には floating window で terminal を

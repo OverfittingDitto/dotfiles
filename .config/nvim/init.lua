@@ -250,7 +250,14 @@ require("gitsigns").setup()
 -- })
 
 -- ◆ Oil（ファイラー）
-require("oil").setup({ default_file_explorer = true, view_options = { show_hidden = true } })
+-- `-` で開く/閉じるをトグル。親ディレクトリへは ".." を選択する。
+require("oil").setup({
+    default_file_explorer = true,
+    view_options = { show_hidden = true },
+    keymaps = {
+        ["-"] = "actions.close", -- Oil 内では `-` で閉じる (デフォは parent)
+    },
+})
 map("n", "-", "<CMD>Oil<CR>", { desc = "Open Oil" })
 
 require("toggleterm").setup({
