@@ -19,10 +19,14 @@ mkdir -p "$XDG_STATE_HOME/zsh"
 # ======================================================================
 alias c='clear'
 
-# rm の代わりに macOS ゴミ箱へ移動（復元可能・安全）
+# rm の代わりにゴミ箱へ移動 (macOS: brew install trash でインストール)
 # Claude Code など自動フローからは rm -f を使うことで確認をスキップできる
-export PATH="/opt/homebrew/opt/trash/bin:$PATH"
-alias rm='trash'
+if [ -d /opt/homebrew/opt/trash/bin ]; then
+    export PATH="/opt/homebrew/opt/trash/bin:$PATH"
+fi
+if command -v trash &>/dev/null; then
+    alias rm='trash'
+fi
 alias cp='cp -i'
 alias mv='mv -i'
 
@@ -187,9 +191,11 @@ _sync_ssh_env() {
         # tmuxのupdate-environmentがattach時にSSH_CONNECTIONを伝播するため信頼する。
         return
     fi
+    # local をループ内で再宣言すると zsh の typeset の挙動で既存値が
+    # 標準出力に表示されてしまうため、ループの外で一度だけ宣言する。
     local pid=$$
+    local ppid comm
     while [[ $pid -gt 1 ]]; do
-        local ppid comm
         ppid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
         comm=$(ps -o comm= -p "$pid" 2>/dev/null)
         if [[ "$comm" == *sshd* ]]; then
