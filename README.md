@@ -13,9 +13,22 @@
 │   ├── zsh/        # → ~/.zshrc, ~/.zprofile (中のファイルをホーム直下にリンク)
 │   ├── vim/        # → ~/.vimrc
 │   └── ...
-├── setup.sh        # symlinkセットアップスクリプト
+├── setup.sh        # symlinkセットアップスクリプト (Nixなし環境用)
+├── flake.nix       # home-manager の入口。user/arch/home は実行時(--impure)に読む
+├── flake.lock      # nixpkgs / home-manager のバージョン固定
+├── nix/
+│   └── common.nix  # Nixで入れるパッケージ + symlink定義 (マシン非依存)
 └── .gitignore
 ```
+
+**ツール導入と設定リンクは2層に分かれています:**
+
+| | パッケージ導入 | 設定ファイルの symlink |
+| ---- | ---- | ---- |
+| **Nixあり** (Mac / SSH / WSL) | `home-manager switch` | home-manager (`nix/common.nix`) |
+| **Nixなし** | distro / brew 等で手動 | `./setup.sh` |
+
+どちらの経路でも symlink は最終的に**リポジトリの実ファイル**を指すので、設定の編集は再ビルドなしで即反映されます。
 
 **リンク規則:**
 
@@ -46,7 +59,143 @@ cd ~/dotfiles
 | `-a, --all`    | バイナリ未導入のツールも含めてすべてsymlinkを張る            |
 | `-h, --help`   | ヘルプを表示                                                 |
 
-### vimだけクイックインストール (持ち運び用)
+## Nix (home-manager) でパッケージを管理する
+
+CLIツールを Homebrew ではなく Nix で管理したい場合の手順。**Mac / SSH先 / WSL いずれでも同じ `nix/common.nix` でツールが揃います。** GUIアプリ (Ghostty, OrbStack, Zed 等) と `trash` は引き続き Homebrew に残します。
+
+### 仕組み
+
+リポジトリには `flake.nix` + `nix/common.nix` (パッケージ一覧 + symlink定義) を置きます。**ユーザー名・アーキテクチャ等のマシン固有値はリポジトリに一切書きません。** `flake.nix` が `switch` 実行時に環境から読みます:
+
+| 値 | 読み方 (実行時) |
+| ---- | ---- |
+| アーキテクチャ | `builtins.currentSystem` |
+| ユーザー名 | `$USER` |
+| ホームディレクトリ | `$HOME` |
+
+これらは環境を読むため `--impure` フラグが必要です (毎回付ける。エイリアスで隠せる)。`home-manager init` や、生成ファイルの手書き編集は不要です。
+
+### 新しいマシンでのセットアップ
+
+```sh
+# 1. dotfiles を clone (symlink先になるのでこのパスは維持する)
+git clone git@github.com:OverfittingDitto/dotfiles.git ~/dotfiles
+
+# 2. Nix をインストール (Determinate Systems インストーラー。WSL2 もサポート)
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh   # 現在のシェルで有効化
+
+# 3. 適用 (ツール導入 + symlink作成がまとめて走る)
+#    初回は home-manager バイナリがまだ無いので nix run 経由で起動する。
+#    この初回 switch が home-manager 自身も入れるので、2回目以降は
+#    `home-manager switch ...` が直接使えるようになる。
+nix run github:nix-community/home-manager -- switch --flake ~/dotfiles#default --impure
+```
+
+`--impure` を毎回打つのが面倒なら `.zshrc` 等にエイリアスを置く (このリポジトリでは未設定):
+
+```sh
+alias hms='home-manager switch --flake ~/dotfiles#default --impure'
+```
+
+以降の更新・ロールバックは (home-manager が PATH に入った後):
+
+```sh
+home-manager switch --flake ~/dotfiles#default --impure   # 設定変更を適用
+home-manager generations                                  # 過去の世代一覧
+home-manager rollback                                     # 1つ前に戻す
+nix-tree                                                  # 依存関係ツリーを可視化 (TUI)
+```
+
+### ログインシェルを zsh にする (Linux/WSL のみ)
+
+Nixで入れた zsh は `~/.nix-profile/bin/zsh` に入りますが、ログインシェルの変更は home-manager の管轄外 (root が要る) です。**macOS はシステム zsh が既にログインシェルなので不要**。Linux/WSL で zsh をログインシェルにしたい場合のみ、root 権限のあるマシンで1回だけ実行します:
+
+```sh
+# Nix の zsh を有効なログインシェルとして登録 → 切り替え
+grep -qxF "$HOME/.nix-profile/bin/zsh" /etc/shells || echo "$HOME/.nix-profile/bin/zsh" | sudo tee -a /etc/shells
+chsh -s "$HOME/.nix-profile/bin/zsh"
+```
+
+次回ログインから zsh になります (現在のシェルですぐ試すなら `exec zsh -l`)。`~/.nix-profile/bin/zsh` は profile シンボリックリンクなので、home-manager を更新してもログインシェルのパスは変わりません。
+
+> root の無い SSH 先ではこの方法は使えません。その場合は `~/.bashrc` にガード付きで `[ -x "$HOME/.nix-profile/bin/zsh" ] && exec "$HOME/.nix-profile/bin/zsh" -l` を足す等で代替します。
+
+### 容量管理
+
+Nix の store はパッケージの全依存を保持するため Homebrew より大きくなる (CLIツール一式で実測 約1.2〜2.4GB)。以下で抑える。これらは**daemon/マシン単位の設定**なのでリポジトリには含めず、各マシンで一度だけ行う (要 root)。
+
+**自動で重複削除 (`auto-optimise-store`)** — 内容が同一のファイルをハードリンクで共有する。ロスレスで、世代やロールバックには一切影響しない。Determinate Nix ではユーザー設定用の `nix.custom.conf` に追記する:
+
+```sh
+echo "auto-optimise-store = true" | sudo tee -a /etc/nix/nix.custom.conf
+sudo systemctl restart nix-daemon.service   # daemon に再読込させる
+nix config show auto-optimise-store          # → true なら有効
+```
+
+**古い世代の掃除 (GC)** — switch を繰り返すと過去世代が積もる。不要になったら間引く (これは世代=ロールバック先を消す操作なので自動化はしない):
+
+```sh
+nix-collect-garbage -d     # 古い世代を削除し、未参照パスを回収
+nix store optimise         # 既存分を手動で重複削除 (auto-optimise 前の分にも効く)
+```
+
+> `auto-optimise-store`（ファイル共有・ロスレス）と `nix-collect-garbage -d`（世代削除）は別物。前者は常時ONで無害、後者は履歴を捨てるので任意のタイミングで。
+
+### ツール / リンク対象の追加
+
+#### CLIツールを足す (基本フロー)
+
+1. **パッケージ名を探す** — [search.nixos.org/packages](https://search.nixos.org/packages)。コマンド名とパッケージ名が違うことがある (例: `dust` / `delta` / `btm`→`bottom`)。
+2. **`nix/common.nix` の `home.packages` に1行足す**:
+   ```nix
+   home.packages = with pkgs; [
+     ...
+     新しいツール名   # ← 追記
+   ]
+   ```
+3. **適用**: `home-manager switch --flake ~/dotfiles#default --impure`
+4. **コミット** (main ではなくブランチで)
+
+#### OS 限定で入れたいとき
+
+`common.nix` の分岐ブロックに書く:
+```nix
+  ++ lib.optionals stdenv.isDarwin [ macだけのツール ]
+  ++ lib.optionals stdenv.isLinux  [ linux/wsl だけのツール ];
+```
+
+#### まず試したいだけ (インストールせず一時的に)
+
+```sh
+nix shell nixpkgs#ツール名      # そのシェルの間だけ使える (終了で消える)
+nix run   nixpkgs#ツール名 -- … # 1回だけ実行
+```
+気に入ったら `common.nix` に追記する、という流れが楽。
+
+#### 設定ファイルも伴うツール
+
+`xdg.configFile` (→ `~/.config/<name>`) か `home.file` (→ ホーム直下) にリンクを1行足す。
+
+> **補足**: symlink 定義は `setup.sh` のリンク対象と別管理。新しい設定を足すときは両方を意識する (Nix側は `common.nix`、Nixなし側は `setup.sh` が自動スキャン)。
+
+#### バージョンを上げる (既存ツール全体の更新)
+
+```sh
+nix flake update      # ~/dotfiles で実行 → flake.lock を最新 nixpkgs に更新
+home-manager switch --flake ~/dotfiles#default --impure
+```
+
+#### 重い依存を引くツールだった場合
+
+`override` で不要機能を切る (例は `fastfetch`)。太い依存は `nix path-info -rsh ~/.nix-profile | sort` や `nix-tree` で特定できる:
+```nix
+(ツール名.override { 何々Support = false; })
+```
+
+> Nix が無いマシンでは上記は効きません。従来どおり Homebrew / distro のパッケージマネージャで手動導入し、symlink は `setup.sh` を使ってください。
+
+## vimだけクイックインストール (持ち運び用)
 
 SSH先など git やシェル環境構築が難しいマシンで、`.vimrc` だけ持ち込みたい場合:
 
@@ -123,7 +272,8 @@ LINK_TO_HOME=(
 - **Zed** (`.config/zed/`) — GUIエディタ
 
 ### パッケージ / バージョン管理
-- **Homebrew** — macOS / Linuxbrew パッケージマネージャ。`.zprofile` で自動 activate
+- **Nix / home-manager** (`flake.nix`, `nix/common.nix`) — CLIツールのクロスプラットフォーム管理。Mac/SSH/WSL 共通。詳細は[Nixセクション](#nix-home-manager-でパッケージを管理する)
+- **Homebrew** — macOS / Linuxbrew パッケージマネージャ。GUIアプリ (Cask) と `trash` 用に併用。`.zprofile` で自動 activate
 - **mise** (`.config/mise/`) — Go / Node / Python / Rust / pnpm / uv のランタイム管理
 
 ### ファイル操作 (zshエイリアス)

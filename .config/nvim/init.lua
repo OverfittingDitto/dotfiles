@@ -188,9 +188,12 @@ require("tiny-inline-diagnostic").setup()
 require("mason").setup()
 
 -- ◆ blink.cmp（自動補完）
+-- fuzzy マッチャは Lua 実装を使う。Rust 製ネイティブは cargo + C コンパイラで
+-- 起動時ビルドが要り、ツールチェーンの無いマシン (SSH先/クリーンなNix環境) で
+-- 失敗するため。Lua 実装ならビルド不要でどこでも動く (速度はわずかに劣る程度)。
 local cmp = require("blink.cmp")
-cmp.build():wait(60000)
 cmp.setup({
+    fuzzy      = { implementation = "lua" },
     keymap     = {
         ["<Tab>"]   = { "select_next", "snippet_forward", "fallback" },
         ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
