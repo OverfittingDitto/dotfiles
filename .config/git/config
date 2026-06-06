@@ -22,3 +22,42 @@
 # トークンを埋め込む危険な向きではないので公開して問題ない。
 [url "git@github.com:"]
 	insteadOf = https://github.com/
+
+# --- diff ビューア (delta) ---------------------------------------------------
+# delta は pager。git は非TTY出力時に pager を自動で無効化するため、Claude Code
+# 等のエージェントが実行する diff/log には影響しない (素の出力が返る)。人間の
+# 端末でだけ装飾される。
+[core]
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true       # n / N で diff セクション間を移動
+	line-numbers = true
+
+# --- push / pull の利便性 ----------------------------------------------------
+[push]
+	autoSetupRemote = true  # 新規ブランチの初回 push で upstream を自動設定 (-u 不要)
+[pull]
+	ff = only               # 分岐していたら勝手にマージせず明示的な対応を促す
+[fetch]
+	prune = true            # 消えたリモートブランチの追跡を自動掃除
+
+# --- diff / コンフリクト改善 -------------------------------------------------
+[merge]
+	conflictstyle = zdiff3  # コンフリクトマーカーに共通祖先も出して解決しやすく
+[diff]
+	colorMoved = default    # 移動した行を別色で (色は非TTYでは自動オフ)
+[rerere]
+	enabled = true          # 解決済みコンフリクトを記憶し再解決を省く
+
+# --- コミット / リベース補助 -------------------------------------------------
+[commit]
+	verbose = true          # コミットエディタに diff を表示 (-m 時は無効)
+[rebase]
+	autosquash = true       # fixup! / squash! を自動整列
+	autostash = true        # rebase 前に自動 stash → 後で戻す
+
+# --- 表示まわり (端末でだけ効く) ---------------------------------------------
+[column]
+	ui = auto               # branch/status 等を複数列で (非TTYでは1列に自動)
