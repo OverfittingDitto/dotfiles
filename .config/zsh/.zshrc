@@ -30,18 +30,26 @@ fi
 # 以下は標準コマンドを別ツールに差し替える / 挙動を変えるエイリアス。代替ツール
 # はオプションや出力が GNU/coreutils と非互換なものがあり (例: du→dust は
 # `du -sh` が壊れる、cp -i は非対話で確認待ちになる、rm→trash は -rf 非互換、
-# grep/find/ps→rg/fd/procs はフラグが別物)、Claude Code 等の AI エージェントが
-# 標準コマンドのつもりで実行すると壊れる。
+# grep/find/ps→rg/fd/procs はフラグが別物)、AI エージェントが標準コマンドの
+# つもりで実行すると壊れる。
 #
-# AI は起動時にこのシェル環境をスナップショットして使うため、その際に立つ
-# $CLAUDECODE で判定し、エージェント実行時はエイリアスを定義しない (= 素の
-# コマンドを使う)。代替ツールの色 / アイコン / ページャは非TTYで自動的に無効化
-# されるので、AI が素のコマンドの代わりに使って得する装飾は元々無い。
-# 人間の対話端末では $CLAUDECODE が無いので従来どおり全て有効。
+# 多くの CLI AI は非対話シェルでコマンドを実行し .zshrc を読まないため元々対象外。
+# Claude Code のように対話シェル環境をスナップショットして使うものだけが影響を
+# 受けるので、それらは env 変数で判定してエイリアスを定義しない (= 素のコマンドを
+# 使う)。代替ツールの色 / アイコン / ページャは非TTYで自動無効化されるため、AI が
+# それらを使って得する装飾は元々無い。人間の対話端末では従来どおり全て有効。
+#
+# 新しいエージェントは _is_ai_agent に1行足すだけでよい。
 #
 # 注意: ps を procs に差し替えるため、内部で `ps -o ...` を使う関数
 # (nossh / _sync_ssh_env) は `command ps` を使い、このエイリアスを迂回している。
-if [[ -z "$CLAUDECODE" ]]; then
+_is_ai_agent() {
+    [[ -n "$CLAUDECODE"    ]] && return 0  # Claude Code
+    [[ -n "$AI_AGENT"      ]] && return 0  # 汎用 (Claude Code も設定。将来の規約用)
+    [[ -n "$CODEX_SANDBOX" ]] && return 0  # OpenAI Codex CLI (seatbelt 等)
+    return 1
+}
+if ! _is_ai_agent; then
     # rm はゴミ箱へ
     if command -v trash &>/dev/null; then
         alias rm='trash'
@@ -90,6 +98,7 @@ if [[ -z "$CLAUDECODE" ]]; then
         alias diff='delta'
     fi
 fi
+unset -f _is_ai_agent
 
 # ======================================================================
 # エイリアス (Git)
