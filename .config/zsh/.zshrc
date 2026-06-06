@@ -245,10 +245,13 @@ if command -v mise &>/dev/null; then
     eval "$(mise hook-env --shell zsh)"
 fi
 
+# fzf (キーバインドと補完)
+[ -f "${XDG_CONFIG_HOME:-$HOME/.config}"/fzf/fzf.zsh ] && source "${XDG_CONFIG_HOME:-$HOME/.config}"/fzf/fzf.zsh
+
 # 高速なディレクトリ移動 (zoxide)
+# zoxide は chpwd/precmd フックを使うため、他ツール (fzf 等) の初期化より後、
+# シェル設定の最後で初期化する (zoxide doctor の推奨。これより後にフックを
+# 足す初期化を置かないこと。順序が崩れると起動時に警告が出る)。
 if command -v zoxide &>/dev/null; then
     eval "$(zoxide init zsh)"
 fi
-
-# fzf (キーバインドと補完)
-[ -f "${XDG_CONFIG_HOME:-$HOME/.config}"/fzf/fzf.zsh ] && source "${XDG_CONFIG_HOME:-$HOME/.config}"/fzf/fzf.zsh
