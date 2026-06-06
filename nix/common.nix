@@ -65,6 +65,7 @@ in
     # 開発補助
     mise         # ランタイムバージョン管理 (usage は mise の依存として付随)
     tealdeer     # tldr
+    jq           # JSON 処理 (Claude Code の statusline スクリプトが依存)
 
     # システム情報表示。素の fastfetch は efl/SDL/pipewire/imagemagick 等の
     # GUI・マルチメディア依存を大量に引き込み closure が約1.7GBになる。CLIバナー
@@ -121,6 +122,15 @@ in
     ".zshrc".source    = link ".config/zsh/.zshrc";
     ".zprofile".source = link ".config/zsh/.zprofile";
     ".vimrc".source    = link ".config/vim/.vimrc";
+
+    # Claude Code は自前アップデータを持つためバイナリは Nix で管理しない
+    # (ネイティブ / mise 経由)。ただし自作の設定ファイルだけはここで symlink する。
+    # ~/.claude/ には履歴・セッション・認証等が同居するので、ディレクトリ全体では
+    # なく自作ファイルのみを個別にリンクする。機械固有設定 (enabledPlugins 等) は
+    # 管理対象外の ~/.claude/settings.local.json に置く (Claude が自動マージ)。
+    ".claude/CLAUDE.md".source             = link ".config/claude/CLAUDE.md";
+    ".claude/settings.json".source         = link ".config/claude/settings.json";
+    ".claude/statusline-command.sh".source = link ".config/claude/statusline-command.sh";
   };
 
   # --- nh: Nix 操作のラッパ CLI --------------------------------------------
