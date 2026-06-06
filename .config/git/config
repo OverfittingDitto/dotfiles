@@ -1,0 +1,24 @@
+# ============================================================================
+# Git 共有設定 (dotfiles 管理・マシン非依存)
+# ============================================================================
+# メールは GitHub の noreply (公開前提のアドレス)、name も全コミットで公開済みの
+# ため、すべて追跡して問題ない。マシン依存だった ghq.root は ~ 展開で吸収する
+# (ghq は ~ を展開する。$HOME は展開されないので ~ を使う)。
+#
+# もし将来「仕事用マシンだけ別メール」等が必要になったら、ここを分離せず
+# [includeIf "gitdir:~/work/"] で作業ディレクトリ単位に上書きするのが筋。
+[user]
+	name = overfittingditto
+	email = 248500092+OverfittingDitto@users.noreply.github.com
+
+[init]
+	defaultBranch = main
+
+[ghq]
+	root = ~/src
+	user = OverfittingDitto
+
+# https クローン URL を SSH に書き換える (push 認証は SSH 鍵)。
+# トークンを埋め込む危険な向きではないので公開して問題ない。
+[url "git@github.com:"]
+	insteadOf = https://github.com/

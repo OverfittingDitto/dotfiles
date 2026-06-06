@@ -105,6 +105,9 @@ in
   xdg.configFile = {
     "alacritty".source = link ".config/alacritty";
     "fzf".source       = link ".config/fzf";
+    # git は XDG (~/.config/git/config) に寄せる。従来の ~/.gitconfig は
+    # XDG より優先されるため、各マシンで削除してこちらへ移行する (README参照)。
+    "git/config".source = link ".config/git/config";
     "ghostty".source   = link ".config/ghostty";
     "mise".source      = link ".config/mise";
     "nvim".source      = link ".config/nvim";
