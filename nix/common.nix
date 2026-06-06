@@ -90,6 +90,7 @@ in
 
     # Nix
     nix-tree     # 依存関係ツリーの可視化 (TUI)
+    # nh 本体は下の programs.nh.enable で導入する (env var 設定も付くため)
   ]
   ++ lib.optionals pkgs.stdenv.isDarwin [
     # macOS 専用ツールがあればここ (trash は nixpkgs 未収録なので brew のまま)
@@ -120,6 +121,17 @@ in
     ".zshrc".source    = link ".config/zsh/.zshrc";
     ".zprofile".source = link ".config/zsh/.zprofile";
     ".vimrc".source    = link ".config/vim/.vimrc";
+  };
+
+  # --- nh: Nix 操作のラッパ CLI --------------------------------------------
+  # home-manager / nixos-rebuild を再実装したヘルパ。switch 時にビルド過程を
+  # ツリー表示 (nom) し、前世代との「追加/削除/バージョン変更/closureサイズ増減」
+  # を色付き差分 (dix) で見せる。日常運用は素の home-manager switch ではなく
+  #   nh home switch
+  # を使う。flake を設定すると NH_FLAKE 環境変数が入り、パス指定を省略できる。
+  programs.nh = {
+    enable = true;
+    flake = dotfilesDir;  # = ~/dotfiles。NH_FLAKE に入る
   };
 
   # --- ロケールを必要言語だけに絞る -----------------------------------------
