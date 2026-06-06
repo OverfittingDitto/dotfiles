@@ -19,71 +19,86 @@ mkdir -p "$XDG_STATE_HOME/zsh"
 # ======================================================================
 alias c='clear'
 
-# rm の代わりにゴミ箱へ移動 (macOS: brew install trash でインストール)
-# Claude Code など自動フローからは rm -f を使うことで確認をスキップできる
+# trash を PATH に追加 (rm の置換先。エイリアス自体は下のガード内で張る)
 if [ -d /opt/homebrew/opt/trash/bin ]; then
     export PATH="/opt/homebrew/opt/trash/bin:$PATH"
 fi
-if command -v trash &>/dev/null; then
-    alias rm='trash'
-fi
-alias cp='cp -i'
-alias mv='mv -i'
 
 # ======================================================================
-# エイリアス (モダンなCLIツール)
-# コマンドが存在する場合にのみエイリアスを有効にする
+# エイリアス (標準コマンドの置換) — AI エージェント実行時は無効化
 # ======================================================================
+# 以下は標準コマンドを別ツールに差し替える / 挙動を変えるエイリアス。代替ツール
+# はオプションや出力が GNU/coreutils と非互換なものがあり (例: du→dust は
+# `du -sh` が壊れる、cp -i は非対話で確認待ちになる、rm→trash は -rf 非互換、
+# grep/find/ps→rg/fd/procs はフラグが別物)、AI エージェントが標準コマンドの
+# つもりで実行すると壊れる。
+#
+# 多くの CLI AI は非対話シェルでコマンドを実行し .zshrc を読まないため元々対象外。
+# Claude Code のように対話シェル環境をスナップショットして使うものだけが影響を
+# 受けるので、それらは env 変数で判定してエイリアスを定義しない (= 素のコマンドを
+# 使う)。代替ツールの色 / アイコン / ページャは非TTYで自動無効化されるため、AI が
+# それらを使って得する装飾は元々無い。人間の対話端末では従来どおり全て有効。
+#
+# 新しいエージェントは _is_ai_agent に1行足すだけでよい。
+#
+# 注意: ps を procs に差し替えるため、内部で `ps -o ...` を使う関数
+# (nossh / _sync_ssh_env) は `command ps` を使い、このエイリアスを迂回している。
+_is_ai_agent() {
+    [[ -n "$CLAUDECODE"    ]] && return 0  # Claude Code
+    [[ -n "$AI_AGENT"      ]] && return 0  # 汎用 (Claude Code も設定。将来の規約用)
+    [[ -n "$CODEX_SANDBOX" ]] && return 0  # OpenAI Codex CLI (seatbelt 等)
+    return 1
+}
+if ! _is_ai_agent; then
+    # rm はゴミ箱へ
+    if command -v trash &>/dev/null; then
+        alias rm='trash'
+    fi
+    # cp / mv は上書き前に確認
+    alias cp='cp -i'
+    alias mv='mv -i'
 
-if command -v zoxide &>/dev/null; then
-  alias cd='z'
-  alias cdi='zi'
+    # cd -> zoxide
+    if command -v zoxide &>/dev/null; then
+        alias cd='z'
+        alias cdi='zi'
+    fi
+    # ls -> eza
+    if command -v eza &>/dev/null; then
+        alias ls='eza --icons'
+        alias ll='eza --icons -l -g --git'  # 詳細表示 + Gitステータス
+        alias lt='eza --icons -T'           # ツリー表示
+    fi
+    # cat -> bat (シンタックスハイライト)
+    if command -v bat &>/dev/null; then
+        alias cat='bat'
+    fi
+    # grep -> ripgrep (高速 grep)
+    if command -v rg &>/dev/null; then
+        alias grep='rg'
+    fi
+    # find -> fd (直感的な find)
+    if command -v fd &>/dev/null; then
+        alias find='fd'
+    fi
+    # du -> dust (分かりやすい du)
+    if command -v dust &>/dev/null; then
+        alias du='dust'
+    fi
+    # ps -> procs (モダンな ps)
+    if command -v procs &>/dev/null; then
+        alias ps='procs'
+    fi
+    # top -> btm (リッチな top)
+    if command -v btm &>/dev/null; then
+        alias top='btm'
+    fi
+    # diff -> delta (見やすい diff)
+    if command -v delta &>/dev/null; then
+        alias diff='delta'
+    fi
 fi
-
-# ls -> eza (アイコン付きで表示)
-if command -v eza &>/dev/null; then
-  alias ls='eza --icons'
-  alias ll='eza --icons -l -g --git' # 詳細表示 + Gitステータス
-  alias lt='eza --icons -T' # ツリー表示
-fi
-
-# cat -> bat (シンタックスハイライト付きで表示)
-# if command -v bat &>/dev/null; then
-#   alias cat='bat'
-# fi
-
-# grep -> ripgrep (高速なgrep)
-# ※ rg は grep の完全互換ではないためエイリアスは無効化。直接 rg コマンドを使うこと
-# if command -v rg &>/dev/null; then
-#   alias grep='rg'
-# fi
-
-# find -> fd (高速で直感的なfind)
-# ※ fd は find の完全互換ではないためエイリアスは無効化。直接 fd コマンドを使うこと
-# if command -v fd &>/dev/null; then
-#   alias find='fd'
-# fi
-
-# du -> dust (より分かりやすいディスク使用量表示)
-if command -v dust &>/dev/null; then
-    alias du='dust'
-fi
-
-# ps -> procs (モダンなプロセス表示)
-# ※ procs は ps の完全互換ではないためエイリアスは無効化。直接 procs コマンドを使うこと
-# if command -v procs &>/dev/null; then
-#     alias ps='procs'
-# fi
-
-# top -> btm/bottom (リッチなシステムモニター)
-if command -v btm &>/dev/null; then
-    alias top='btm'
-fi
-
-# diff -> delta (見やすいdiff)
-if command -v delta &>/dev/null; then
-    alias diff='delta'
-fi
+unset -f _is_ai_agent
 
 # ======================================================================
 # エイリアス (Git)
@@ -92,8 +107,8 @@ nossh() {
     local pid=$$
     while [[ $pid -gt 1 ]]; do
         local ppid comm
-        ppid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
-        comm=$(ps -o comm= -p "$pid" 2>/dev/null)
+        ppid=$(command ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
+        comm=$(command ps -o comm= -p "$pid" 2>/dev/null)
         if [[ "$comm" == *sshd* ]]; then
             echo "実際にSSH接続中のため unset しません"
             return 1
@@ -217,8 +232,8 @@ _sync_ssh_env() {
     local pid=$$
     local ppid comm
     while [[ $pid -gt 1 ]]; do
-        ppid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
-        comm=$(ps -o comm= -p "$pid" 2>/dev/null)
+        ppid=$(command ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
+        comm=$(command ps -o comm= -p "$pid" 2>/dev/null)
         if [[ "$comm" == *sshd* ]]; then
             export SSH_CONNECTION="${SSH_CONNECTION:-detected}"
             return
