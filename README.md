@@ -301,13 +301,14 @@ LINK_TO_HOME=(
 ### 開発環境補助
 - **OrbStack** — macOS用 Docker 代替 + Linux VM。`.zprofile` でシェル統合
 - **Obsidian** — Markdownノート (CLI起動用に PATH 追加)
+- **Claude Code** (`.config/claude/`) — CLI本体は自前アップデータを持ち更新が速いため Nix では管理せず、ネイティブインストーラ / mise 経由の npm で導入する。設定は自作の `CLAUDE.md` (グローバル指示) / `settings.json` / `statusline-command.sh` のみ symlink。`model`・`statusLine` は共有、`enabledPlugins` 等の機械固有設定は管理外の `settings.local.json` に置く
 
 ## 管理しないもの
 
 セキュリティや実用上の理由から、以下はリポジトリ管理外にしています:
 
 - `~/.ssh/` — SSH秘密鍵
-- `~/.claude.json`, `~/.claude/` — Claude設定 (セッション情報を含む)
+- `~/.claude.json` と `~/.claude/` の大部分 — セッション・履歴・認証・キャッシュ (`projects/`, `sessions/`, `history.jsonl`, `~/.claude/settings.local.json` など)。**自作設定 (`CLAUDE.md` / `settings.json` / `statusline-command.sh`) だけ**を `.config/claude/` で管理し個別に symlink する (ディレクトリ全体はリンクしない)
 - `~/.config/gh/` — GitHub CLI (OAuthトークンを含む)
 - `~/.config/raycast/` — マシン固有の拡張データ (約7MB)
 - 履歴/キャッシュ系: `~/.zsh_history`, `~/.viminfo`, `~/.cache/`, など
