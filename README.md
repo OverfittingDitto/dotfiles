@@ -12,6 +12,7 @@
 │   ├── starship/   # → ~/.config/starship
 │   ├── zsh/        # → ~/.zshrc, ~/.zprofile (中のファイルをホーム直下にリンク)
 │   ├── vim/        # → ~/.vimrc
+│   ├── git/        # → ~/.config/git/config (XDG)
 │   └── ...
 ├── setup.sh        # symlinkセットアップスクリプト (Nixなし環境用)
 ├── flake.nix       # home-manager の入口。user/arch/home は実行時(--impure)に読む
@@ -325,7 +326,7 @@ LINK_TO_HOME=(
 - **bat** — `cat` の代替。シンタックスハイライト、fzf preview にも使用
 
 ### Git
-- **git** — VCS本体
+- **git** (`.config/git/`) — VCS本体。設定は XDG (`~/.config/git/config`) で管理。メールは GitHub の noreply (公開前提)、`ghq.root` は `~/src` (ghq が `~` を展開) なので**マシン固有値ゼロ＝全部追跡**。`~/.gitconfig` は XDG より優先されるため、既存マシンでは一度だけ `mv ~/.gitconfig ~/.gitconfig.bak` で退避してから switch する (これで `~/.config/git/config` が権威になる)
 - **lazygit** — git TUI。tmux内 `prefix g` でポップアップ
 - **gh** — GitHub CLI。リポジトリ作成、PR操作等
 - **delta** — diff/`git log` ビューア
