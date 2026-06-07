@@ -106,40 +106,40 @@ in
   ];
 
   # --- ~/.config/<name> への symlink ---------------------------------------
-  # setup.sh の「.config/<name>/ をディレクトリごとリンク」に対応。
+  # setup.sh の「config/<name>/ をディレクトリごとリンク」に対応。
   # GUI アプリ (alacritty/ghostty/zed) はヘッドレスな SSH/WSL では使わないが、
   # リンクしても実害はない (実ファイルを指すだけ)。不要なら行を削除する。
   xdg.configFile = {
-    "alacritty".source = link ".config/alacritty";
-    "fzf".source       = link ".config/fzf";
+    "alacritty".source = link "config/alacritty";
+    "fzf".source       = link "config/fzf";
     # git は XDG (~/.config/git/config) に寄せる。従来の ~/.gitconfig は
     # XDG より優先されるため、各マシンで削除してこちらへ移行する (README参照)。
-    "git/config".source = link ".config/git/config";
-    "ghostty".source   = link ".config/ghostty";
-    "mise".source      = link ".config/mise";
-    "nvim".source      = link ".config/nvim";
-    "sheldon".source   = link ".config/sheldon";
-    "starship".source  = link ".config/starship";
-    "tmux".source      = link ".config/tmux";
-    "yazi".source      = link ".config/yazi";
-    "zed".source       = link ".config/zed";
+    "git/config".source = link "config/git/config";
+    "ghostty".source   = link "config/ghostty";
+    "mise".source      = link "config/mise";
+    "nvim".source      = link "config/nvim";
+    "sheldon".source   = link "config/sheldon";
+    "starship".source  = link "config/starship";
+    "tmux".source      = link "config/tmux";
+    "yazi".source      = link "config/yazi";
+    "zed".source       = link "config/zed";
   };
 
   # --- ホーム直下への symlink ----------------------------------------------
   # setup.sh の LINK_TO_HOME (zsh / vim) に対応。
   home.file = {
-    ".zshrc".source    = link ".config/zsh/.zshrc";
-    ".zprofile".source = link ".config/zsh/.zprofile";
-    ".vimrc".source    = link ".config/vim/.vimrc";
+    ".zshrc".source    = link "config/zsh/.zshrc";
+    ".zprofile".source = link "config/zsh/.zprofile";
+    ".vimrc".source    = link "config/vim/.vimrc";
 
     # Claude Code は自前アップデータを持つためバイナリは Nix で管理しない
     # (ネイティブ / mise 経由)。ただし自作の設定ファイルだけはここで symlink する。
     # ~/.claude/ には履歴・セッション・認証等が同居するので、ディレクトリ全体では
     # なく自作ファイルのみを個別にリンクする。機械固有設定 (enabledPlugins 等) は
     # 管理対象外の ~/.claude/settings.local.json に置く (Claude が自動マージ)。
-    ".claude/CLAUDE.md".source             = link ".config/claude/CLAUDE.md";
-    ".claude/settings.json".source         = link ".config/claude/settings.json";
-    ".claude/statusline-command.sh".source = link ".config/claude/statusline-command.sh";
+    ".claude/CLAUDE.md".source             = link "config/claude/CLAUDE.md";
+    ".claude/settings.json".source         = link "config/claude/settings.json";
+    ".claude/statusline-command.sh".source = link "config/claude/statusline-command.sh";
   };
 
   # --- nh: Nix 操作のラッパ CLI --------------------------------------------
