@@ -16,3 +16,6 @@
 
 # Zed prompts DB (binary, frequently mutated)
 .config/zed/prompts/prompts-library-db.*/
+
+# Yazi plugins (package.toml がマニフェスト。`ya pkg install` で復元する)
+.config/yazi/plugins/

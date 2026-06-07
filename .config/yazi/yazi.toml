@@ -1,0 +1,30 @@
+# yazi.toml
+[mgr]
+show_hidden    = true
+linemode       = "size_and_mtime"
+sort_by        = "natural" # file2 を file10 より前に並べる自然順ソート
+sort_sensitive = false     # 並び替えで大文字小文字を区別しない
+sort_dir_first = true      # ディレクトリを先頭にまとめる
+
+[preview]
+tab_size   = 4    # タブ幅を nvim と揃える
+max_width  = 1000 # プレビュー画像の最大解像度
+max_height = 1000
+
+[opener]
+edit = [
+    # EDITOR 未設定でも nvim で開けるようフォールバックを指定
+    { run = '${EDITOR:-nvim} "$@"', block = true, for = "unix" },
+]
+
+# git.yazi: ファイル/ディレクトリの git 状態を取得する fetcher
+[[plugin.prepend_fetchers]]
+id    = "git"
+url   = "*"
+run   = "git"
+group = "git"
+[[plugin.prepend_fetchers]]
+id    = "git"
+url   = "*/"
+run   = "git"
+group = "git"

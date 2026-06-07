@@ -424,6 +424,15 @@ for i in "${!PLAN_TARGET[@]}"; do
 done
 
 
+# --- Yazi プラグインの復元 --------------------------------------------------
+# プラグイン本体は ~/.config/yazi/plugins/ に配置されるが gitignore 済みのため、
+# package.toml をマニフェストとして `ya pkg install` で復元する。
+if command -v ya >/dev/null 2>&1 && [ -f "$HOME/.config/yazi/package.toml" ]; then
+  info "Restoring Yazi plugins (ya pkg install)..."
+  ya pkg install || warn "ya pkg install failed."
+fi
+
+
 # --- 結果サマリ -------------------------------------------------------------
 echo
 if [ "$errors" -gt 0 ]; then
