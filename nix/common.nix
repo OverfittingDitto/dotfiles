@@ -52,6 +52,7 @@ in
     bat          # cat の代替
     hexyl        # hex ビューア
     tree
+    yazi
 
     # 検索
     ripgrep      # rg
@@ -116,6 +117,7 @@ in
     "sheldon".source   = link ".config/sheldon";
     "starship".source  = link ".config/starship";
     "tmux".source      = link ".config/tmux";
+    "yazi".source      = link ".config/yazi";
     "zed".source       = link ".config/zed";
   };
 
