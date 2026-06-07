@@ -29,7 +29,7 @@ rustPlatform.buildRustPackage rec {
     hash = "sha256-Srw71Rswafu70kKI36dY1PtB4BQhpTYYzqbrWJuvaUM=";
   };
 
-  cargoHash = lib.fakeHash;     # ← 同上
+  cargoHash = "sha256-Ga405TV1uDSZbADrV+3aAeLDRfdPFHzdxxTEDu+f+b4=";
 
   # git2 が vendored-openssl 指定 = openssl をソースからビルドするため perl が要る。
   # pkg-config は libgit2-sys 用。
