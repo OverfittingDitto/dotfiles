@@ -1,0 +1,86 @@
+# Starship prompt config (Nerd Font なし版)
+# Docs: https://starship.rs/config/
+# 方針: starship.toml と同じレイアウトで、Nerd Font アイコンだけをテキストに置換。
+# NERD_FONT=0 のとき .zshrc が STARSHIP_CONFIG をこのファイルに向ける。
+# !! starship.toml を変更したら、記号以外の差分はこちらにも反映すること !!
+
+"$schema" = 'https://starship.rs/config-schema.json'
+add_newline = true
+
+# 1行目: 情報、2行目: プロンプト記号 (枠線は標準 Unicode なのでそのまま)
+format = """
+[┏ ](bold white)$hostname$directory$git_branch$git_status$nodejs$python$rust$golang$lua$cmd_duration
+[┗━ ](bold white)$character"""
+
+[character]
+success_symbol = "[❯](green)"
+error_symbol   = "[❯](red)"
+
+[username]
+disabled = true
+
+# SSH 時のみホスト名 (アイコン → "ssh ")
+[hostname]
+ssh_only = true
+format   = "[ssh $hostname ](bright-purple)"
+
+# ディレクトリ (read_only アイコン → " ro")
+[directory]
+truncation_length = 5
+truncation_symbol = "…/"
+truncate_to_repo  = false
+home_symbol       = "~"
+read_only         = " ro"
+read_only_style   = "red"
+format            = "[$path$read_only](cyan bold)"
+
+# Git (ブランチアイコン → なし。ブランチ名は表示される)
+[git_branch]
+symbol = ""
+format = " [$symbol$branch](purple)"
+
+[git_status]
+format = " [$all_status$ahead_behind](red)"
+
+# 言語バージョン (検出ファイルがある時のみ表示。アイコン → 短いラベル)
+[nodejs]
+symbol            = "node "
+format            = " [$symbol$version](green)"
+detect_files      = ["package.json", ".nvmrc", ".node-version"]
+
+[python]
+symbol            = "py "
+format            = " [$symbol$version](yellow)"
+detect_files      = ["pyproject.toml", "requirements.txt", "Pipfile", "uv.lock", "setup.py"]
+detect_extensions = ["py"]
+
+[rust]
+symbol = "rs "
+format = " [$symbol$version](bright-yellow)"
+
+[golang]
+symbol = "go "
+format = " [$symbol$version](cyan)"
+
+[lua]
+symbol = "lua "
+format = " [$symbol$version](bright-purple)"
+
+# 重いコマンドの実行時間 (2秒以上のみ。アイコン → "took ")
+[cmd_duration]
+min_time = 2000
+format   = " [took $duration](yellow)"
+
+# 重い/不要モジュールは明示的に無効化
+[aws]
+disabled = true
+[gcloud]
+disabled = true
+[kubernetes]
+disabled = true
+[azure]
+disabled = true
+[terraform]
+disabled = true
+[package]
+disabled = true

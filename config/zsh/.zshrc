@@ -15,6 +15,37 @@ mkdir -p "$XDG_CACHE_HOME/zsh"
 mkdir -p "$XDG_STATE_HOME/zsh"
 
 # ======================================================================
+# Nerd Font 判定 (アイコン表示の可否を NERD_FONT に一元化)
+# ======================================================================
+# starship / tmux / eza など各ツールはこの NERD_FONT を見てアイコンを出し分ける。
+# フォントの実レンダリングは確実に検出できない (特に SSH 越し) ため、
+# 「自分が Nerd Font 付きで設定した端末か」を端末が吐く環境変数で判定する。
+# 検出できない素の端末 (bare な SSH 先など) では 0 にして文字化けを防ぐ。
+
+# マシン固有の上書き (例: NF が無い環境で NERD_FONT=0 を書く)。リポジトリ管理外。
+[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
+
+if [[ -z ${NERD_FONT:-} ]]; then
+    if [[ -n ${GHOSTTY_RESOURCES_DIR:-}${ALACRITTY_WINDOW_ID:-}${KITTY_WINDOW_ID:-}${WEZTERM_PANE:-} \
+          || ${TERM_PROGRAM:-} == "ghostty" ]]; then
+        export NERD_FONT=1
+    else
+        export NERD_FONT=0
+    fi
+fi
+
+# tmux 内では @i_* アイコンオプションを NERD_FONT に応じて設定する。
+# tmux サーバの環境は起動後に変更できず if-shell から NERD_FONT を読めないため、
+# シェル側から push する (tmux.conf は -go の空既定なので再読込でも消えない)。
+if [[ -n ${TMUX:-} ]] && command -v tmux >/dev/null 2>&1; then
+    if [[ $NERD_FONT == 1 ]]; then
+        tmux source-file "${XDG_CONFIG_HOME:-$HOME/.config}/tmux/icons-nerd.conf" 2>/dev/null
+    else
+        tmux set -g @i_mode "" \; set -g @i_tmux "" \; set -g @i_date "" \; set -g @i_time "" 2>/dev/null
+    fi
+fi
+
+# ======================================================================
 # エイリアス (基本コマンド)
 # ======================================================================
 alias c='clear'
@@ -65,9 +96,12 @@ if ! _is_ai_agent; then
     fi
     # ls -> eza
     if command -v eza &>/dev/null; then
-        alias ls='eza --icons'
-        alias ll='eza --icons -l -g --git'  # 詳細表示 + Gitステータス
-        alias lt='eza --icons -T'           # ツリー表示
+        # Nerd Font が無い環境ではアイコンを出さない (文字化け防止)
+        [ "$NERD_FONT" = 1 ] && _eza_icons=--icons || _eza_icons=
+        alias ls="eza $_eza_icons"
+        alias ll="eza $_eza_icons -l -g --git"  # 詳細表示 + Gitステータス
+        alias lt="eza $_eza_icons -T"           # ツリー表示
+        unset _eza_icons
     fi
     # cat -> bat (シンタックスハイライト)
     if command -v bat &>/dev/null; then
@@ -271,7 +305,12 @@ fi
 
 # プロンプト (starship)
 # ~/.config直下にtomlを置かれるのを避けてサブディレクトリに格納
-export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
+# Nerd Font が無い環境では記号をテキストにした nonf 版を使う
+if [ "$NERD_FONT" = 1 ]; then
+    export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
+else
+    export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship-nonf.toml"
+fi
 if command -v starship &>/dev/null; then
     eval "$(starship init zsh)"
 fi
