@@ -7,7 +7,7 @@
 # このリポジトリの dotfiles を $HOME 配下にシンボリックリンクで配置します。
 #
 # リンク規則:
-#   dotfiles/.config/<name>/...  →  ~/.config/<name>   (サブディレクトリ単位でリンク)
+#   dotfiles/config/<name>/...  →  ~/.config/<name>   (サブディレクトリ単位でリンク)
 #   dotfiles/<group>/<file>      →  ~/<file>           (グループ配下の各ファイル単位でリンク)
 #
 # 使い方:
@@ -101,7 +101,7 @@ skip() { printf '  %s•%s %s\n' "$DIM" "$RESET" "$*"; }      # スキップ
 # ============================================================================
 #
 # 大前提:
-#   dotfiles/.config/<フォルダ名>/ をそのまま ~/.config/<フォルダ名> へリンクする。
+#   dotfiles/config/<フォルダ名>/ をそのまま ~/.config/<フォルダ名> へリンクする。
 #   フォルダ名 == 実行コマンド名 (例: nvim フォルダ → nvim コマンド) であれば、
 #   下の配列は何も編集しなくて良い。フォルダを置くだけで自動で拾う。
 #
@@ -115,7 +115,7 @@ skip() { printf '  %s•%s %s\n' "$DIM" "$RESET" "$*"; }      # スキップ
 #   LINK_TO_HOME : フォルダ「全体」を ~/.config/<name> にリンクするのではなく、
 #                  フォルダ内の各ファイルを ~/<ファイル名> へ個別にリンクする。
 #                  zsh / vim のように、本来ホーム直下に置くべき設定をリポジトリ
-#                  上は .config/ 配下に集約したい場合に使う。
+#                  上は config/ 配下に集約したい場合に使う。
 #
 #   LINK_TO_SUBDIR : フォルダ内の各ファイルを ~/<別ディレクトリ>/<ファイル名> へ
 #                  個別にリンクする。書式: "フォルダ名=ホーム配下のディレクトリ名"
@@ -133,12 +133,12 @@ BINARY_AS=(
 )
 
 LINK_TO_HOME=(
-  zsh                    # .config/zsh/.zshrc, .zprofile → ~/.zshrc, ~/.zprofile
-  vim                    # .config/vim/.vimrc            → ~/.vimrc
+  zsh                    # config/zsh/.zshrc, .zprofile → ~/.zshrc, ~/.zprofile
+  vim                    # config/vim/.vimrc            → ~/.vimrc
 )
 
 LINK_TO_SUBDIR=(
-  "claude=.claude"       # .config/claude/* → ~/.claude/* (Claude Code は ~/.config ではなく ~/.claude を読む)
+  "claude=.claude"       # config/claude/* → ~/.claude/* (Claude Code は ~/.config ではなく ~/.claude を読む)
 )
 
 
@@ -272,11 +272,11 @@ add_plan() {
 }
 
 
-# --- .config/<name>/ をスキャン --------------------------------------------
+# --- config/<name>/ をスキャン --------------------------------------------
 # 通常は ~/.config/<name> へディレクトリごとリンクする。
 # ただし LINK_TO_HOME に含まれるフォルダは、中のファイルを個別に ~/<ファイル名> へリンクする。
-if [ -d "$DOTFILES_DIR/.config" ]; then
-  for src in "$DOTFILES_DIR/.config"/*; do
+if [ -d "$DOTFILES_DIR/config" ]; then
+  for src in "$DOTFILES_DIR/config"/*; do
     [ -d "$src" ] || continue        # ディレクトリ以外はスキップ
     name="$(basename "$src")"
 
