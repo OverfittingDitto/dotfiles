@@ -93,6 +93,9 @@ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix 
 #    この初回 switch が home-manager 自身と nh も入れるので、2回目以降は
 #    `nh home switch ...` が直接使えるようになる。
 nix run github:nix-community/home-manager -- switch --flake ~/dotfiles#default --impure
+
+# 4. Yazi プラグインを復元 (Nix経由では setup.sh を通らないため手動。package.toml 基準)
+ya pkg install
 ```
 
 `-c default --impure` を毎回打つのが面倒なので、`.zshrc` に `nh` のラッパ関数を登録済み。`nh home switch` と打つだけで自動で `-c default --impure` が付く (`search` / `clean` 等の他サブコマンドはそのまま素通し):
