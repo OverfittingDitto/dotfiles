@@ -44,6 +44,7 @@ in
     ghq          # リポジトリ管理
     delta        # git-delta: diff ビューア
     lazygit      # git TUI
+    serie        # git graph viewer
 
     # ファイル操作
     eza          # ls の代替
