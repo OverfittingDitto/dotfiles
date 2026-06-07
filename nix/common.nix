@@ -20,6 +20,9 @@ let
 
   # リポジトリ内の相対パスを、リポジトリ実体への out-of-store symlink に変換する。
   link = path: config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/${path}";
+
+  # nixpkgs 未収録の自作ビルド (詳細は nix/keifu.nix)。
+  keifu = pkgs.callPackage ./keifu.nix { };
 in
 {
   # --- インストールするパッケージ ------------------------------------------
@@ -44,7 +47,7 @@ in
     ghq          # リポジトリ管理
     delta        # git-delta: diff ビューア
     lazygit      # git TUI
-    serie        # git graph viewer
+    keifu        # git graph viewer (Unicode描画・画像不要でSSH/tmuxでも動く)
 
     # ファイル操作
     eza          # ls の代替
