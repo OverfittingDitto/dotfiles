@@ -108,6 +108,10 @@ alias gp='git pull'
 alias gc='git commit -m'
 alias gco='git checkout'
 alias gl='git log --graph --oneline'
+alias gd='git diff'
+if command -v keifu &>/dev/null; then
+    alias gg='keifu'
+fi
 
 # ======================================================================
 # Nix / home-manager
