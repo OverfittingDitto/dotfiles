@@ -163,7 +163,17 @@ vim.diagnostic.config({
 -- =============================================================================
 
 -- ◆ カラースキーム
-require("catppuccin").setup({ transparent_background = true })
+-- transparent_background だけだと catppuccin はフロートの bg に mantle 色を残すため、
+-- NormalFloat / FloatBorder の bg を明示的に消してボーダーまで透過させる。
+require("catppuccin").setup({
+    transparent_background = true,
+    custom_highlights = function()
+        return {
+            NormalFloat = { bg = "NONE" },
+            FloatBorder = { bg = "NONE" },
+        }
+    end,
+})
 vim.cmd.colorscheme("catppuccin-frappe")
 -- vim.cmd.colorscheme("catppuccin-mocha")
 
