@@ -12,9 +12,10 @@ max_width  = 1000 # プレビュー画像の最大解像度
 max_height = 1000
 
 [opener]
+# エディタは nvim を最優先。無ければ vim、それも無ければ環境標準($EDITOR/vi)に
+# 明示的にフォールバックする。
 edit = [
-    # EDITOR 未設定でも nvim で開けるようフォールバックを指定
-    { run = '${EDITOR:-nvim} "$@"', block = true, for = "unix" },
+    { run = 'if command -v nvim >/dev/null 2>&1; then nvim "$@"; elif command -v vim >/dev/null 2>&1; then vim "$@"; else ${EDITOR:-vi} "$@"; fi', block = true, for = "unix" },
 ]
 
 # git.yazi: ファイル/ディレクトリの git 状態を取得する fetcher
