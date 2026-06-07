@@ -8,7 +8,7 @@
 # もし将来「仕事用マシンだけ別メール」等が必要になったら、ここを分離せず
 # [includeIf "gitdir:~/work/"] で作業ディレクトリ単位に上書きするのが筋。
 [user]
-	name = overfittingditto
+	name = OverfittingDitto
 	email = 248500092+OverfittingDitto@users.noreply.github.com
 
 [init]
