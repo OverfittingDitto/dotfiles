@@ -103,22 +103,6 @@ unset -f _is_ai_agent
 # ======================================================================
 # エイリアス (Git)
 # ======================================================================
-nossh() {
-    local pid=$$
-    while [[ $pid -gt 1 ]]; do
-        local ppid comm
-        ppid=$(command ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
-        comm=$(command ps -o comm= -p "$pid" 2>/dev/null)
-        if [[ "$comm" == *sshd* ]]; then
-            echo "実際にSSH接続中のため unset しません"
-            return 1
-        fi
-        [[ -z "$ppid" || "$ppid" == "$pid" ]] && break
-        pid=$ppid
-    done
-    unset SSH_CONNECTION SSH_CLIENT SSH_TTY
-}
-
 alias gs='git status'
 alias gp='git pull'
 alias gc='git commit -m'
@@ -219,6 +203,59 @@ setopt correct              # 簡単なコマンドのタイプミスを修正
 setopt print_eight_bit      # 日本語ファイル名などを正しく表示
 
 # ======================================================================
+# SSH 環境変数の制御
+# ======================================================================
+# プロセスツリーを祖先方向にたどり、sshd が見つかれば成功(0)を返す共通ヘルパー。
+# nossh と _sync_ssh_env の両方から使う。
+# 注意1: local をループ内で再宣言すると zsh の typeset の挙動で 2 周目以降に
+#        既存値が標準出力へ漏れるため、local はループの外で一度だけ宣言する。
+# 注意2: ps は procs に差し替えられている場合があるため command ps で素の ps を呼ぶ。
+_has_sshd_ancestor() {
+    local pid=$$ ppid comm
+    while [[ $pid -gt 1 ]]; do
+        ppid=$(command ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
+        comm=$(command ps -o comm= -p "$pid" 2>/dev/null)
+        [[ "$comm" == *sshd* ]] && return 0
+        [[ -z "$ppid" || "$ppid" == "$pid" ]] && break
+        pid=$ppid
+    done
+    return 1
+}
+
+# 残存した SSH 環境変数を手動でクリアする。ただし実際に SSH 接続中なら何もしない。
+# (例: tmux 経由で SSH_* が引き継がれ、ローカルなのに SSH 扱いになった時のリセット)
+nossh() {
+    if _has_sshd_ancestor; then
+        echo "実際にSSH接続中のため unset しません"
+        return 1
+    fi
+    unset SSH_CONNECTION SSH_CLIENT SSH_TTY
+}
+
+# 起動時に SSH 状態をプロセスツリーで判定し、環境変数の欠落・引き継ぎを補正する。
+# starship が ssh_only=true でホスト名表示に使うため、プロンプト描画前に確定させる。
+_sync_ssh_env() {
+    # sshd がプロセスツリーを経由せず ProxyCommand で接続する場合 (OrbStack,
+    # VSCode Remote SSH 等) は SSH_CONNECTION が sshd 側でセットされた状態で
+    # 渡ってくるので、既にセットされていればそのまま信頼する。
+    if [[ -n "$SSH_CONNECTION" || -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]; then
+        return
+    fi
+    # Tmux内: 新規WindowはTmuxサーバーの子プロセスなのでsshd検出不可。
+    # tmuxのupdate-environmentがattach時にSSH_CONNECTIONを伝播するため信頼する。
+    if [[ -n "$TMUX" ]]; then
+        return
+    fi
+    if _has_sshd_ancestor; then
+        export SSH_CONNECTION="${SSH_CONNECTION:-detected}"
+    else
+        unset SSH_CONNECTION SSH_CLIENT SSH_TTY
+    fi
+}
+_sync_ssh_env
+unset -f _sync_ssh_env   # 起動時のみ使用。_has_sshd_ancestor は nossh が使うため残す
+
+# ======================================================================
 # 各種ツールの初期化
 # ======================================================================
 
@@ -227,38 +264,6 @@ setopt print_eight_bit      # 日本語ファイル名などを正しく表示
 if command -v sheldon &>/dev/null; then
     eval "$(sheldon source)"
 fi
-
-# SSH状態をプロセスツリーで判定（Tmux経由の引き継ぎ・欠落を両方補正）
-_sync_ssh_env() {
-    # sshd がプロセスツリーを経由せず ProxyCommand で接続する場合
-    # (OrbStack, VSCode Remote SSH 等) は SSH_CONNECTION が sshd 側で
-    # セットされた状態で渡ってくるので、既にセットされていればそのまま信頼する。
-    if [[ -n "$SSH_CONNECTION" || -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]; then
-        return
-    fi
-    if [[ -n "$TMUX" ]]; then
-        # Tmux内: 新規WindowはTmuxサーバーの子プロセスなのでsshd検出不可。
-        # tmuxのupdate-environmentがattach時にSSH_CONNECTIONを伝播するため信頼する。
-        return
-    fi
-    # local をループ内で再宣言すると zsh の typeset の挙動で既存値が
-    # 標準出力に表示されてしまうため、ループの外で一度だけ宣言する。
-    local pid=$$
-    local ppid comm
-    while [[ $pid -gt 1 ]]; do
-        ppid=$(command ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
-        comm=$(command ps -o comm= -p "$pid" 2>/dev/null)
-        if [[ "$comm" == *sshd* ]]; then
-            export SSH_CONNECTION="${SSH_CONNECTION:-detected}"
-            return
-        fi
-        [[ -z "$ppid" || "$ppid" == "$pid" ]] && break
-        pid=$ppid
-    done
-    unset SSH_CONNECTION SSH_CLIENT SSH_TTY
-}
-_sync_ssh_env
-unset -f _sync_ssh_env
 
 # プロンプト (starship)
 # ~/.config直下にtomlを置かれるのを避けてサブディレクトリに格納
