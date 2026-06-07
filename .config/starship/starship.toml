@@ -6,9 +6,10 @@
 add_newline = true
 
 # 1行目: 情報、2行目: プロンプト記号
+# 左側を角丸の縦線で連結 (╭─ … ╰─)
 format = """
-$hostname$directory$git_branch$git_status$nodejs$python$rust$golang$lua$cmd_duration
-$character"""
+[┏ ](bold white)$hostname$directory$git_branch$git_status$nodejs$python$rust$golang$lua$cmd_duration
+[┗━ ](bold white)$character"""
 
 [character]
 success_symbol = "[❯](green)"
