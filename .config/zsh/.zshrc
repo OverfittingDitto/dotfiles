@@ -153,6 +153,20 @@ alias ....='cd ../../.. && pwd'
 # alias 2='cd -2'
 # alias 3='cd -3'
 
+# Yazi: ファイラーを抜けたとき最後にいたディレクトリへシェルも移動する。
+# 子プロセス(yazi)は親シェルのcwdを変えられないため、--cwd-file に終了時の
+# パスを書き出させ、親シェルがそれを読んで cd する (Yazi公式推奨の統合方法)。
+# cd は zoxide で z に差し替えられているので builtin cd で素のcdを呼ぶ。
+if command -v yazi &>/dev/null; then
+    y() {
+        local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+        command yazi "$@" --cwd-file="$tmp"
+        IFS= read -r -d '' cwd < "$tmp"
+        [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
+        command rm -f -- "$tmp"
+    }
+fi
+
 # ======================================================================
 # Zsh 補完機能 (Completion)
 # ======================================================================
