@@ -34,6 +34,17 @@ if [[ -z ${NERD_FONT:-} ]]; then
     fi
 fi
 
+# tmux 内では @i_* アイコンオプションを NERD_FONT に応じて設定する。
+# tmux サーバの環境は起動後に変更できず if-shell から NERD_FONT を読めないため、
+# シェル側から push する (tmux.conf は -go の空既定なので再読込でも消えない)。
+if [[ -n ${TMUX:-} ]] && command -v tmux >/dev/null 2>&1; then
+    if [[ $NERD_FONT == 1 ]]; then
+        tmux source-file "${XDG_CONFIG_HOME:-$HOME/.config}/tmux/icons-nerd.conf" 2>/dev/null
+    else
+        tmux set -g @i_mode "" \; set -g @i_tmux "" \; set -g @i_date "" \; set -g @i_time "" 2>/dev/null
+    fi
+fi
+
 # ======================================================================
 # エイリアス (基本コマンド)
 # ======================================================================
