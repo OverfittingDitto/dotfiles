@@ -26,7 +26,7 @@ rustPlatform.buildRustPackage rec {
     owner = "trasta298";
     repo = "keifu";
     rev = "v${version}";
-    hash = lib.fakeHash;        # ← 初回 switch のエラーで出る値に差し替え
+    hash = "sha256-Srw71Rswafu70kKI36dY1PtB4BQhpTYYzqbrWJuvaUM=";
   };
 
   cargoHash = lib.fakeHash;     # ← 同上
