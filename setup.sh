@@ -116,6 +116,12 @@ skip() { printf '  %s•%s %s\n' "$DIM" "$RESET" "$*"; }      # スキップ
 #                  フォルダ内の各ファイルを ~/<ファイル名> へ個別にリンクする。
 #                  zsh / vim のように、本来ホーム直下に置くべき設定をリポジトリ
 #                  上は .config/ 配下に集約したい場合に使う。
+#
+#   LINK_TO_SUBDIR : フォルダ内の各ファイルを ~/<別ディレクトリ>/<ファイル名> へ
+#                  個別にリンクする。書式: "フォルダ名=ホーム配下のディレクトリ名"
+#                  ツールが ~/.config ではなく独自ディレクトリを読む場合に使う。
+#                  (履歴・認証等が同居するディレクトリ全体ではなく自作ファイルだけ
+#                   リンクしたいケース。nix/common.nix の home.file と挙動を揃える)
 # ============================================================================
 
 NO_BINARY=(
@@ -129,6 +135,10 @@ BINARY_AS=(
 LINK_TO_HOME=(
   zsh                    # .config/zsh/.zshrc, .zprofile → ~/.zshrc, ~/.zprofile
   vim                    # .config/vim/.vimrc            → ~/.vimrc
+)
+
+LINK_TO_SUBDIR=(
+  "claude=.claude"       # .config/claude/* → ~/.claude/* (Claude Code は ~/.config ではなく ~/.claude を読む)
 )
 
 
@@ -169,6 +179,23 @@ binary_for() {
   done
 
   printf '%s' "$folder"
+}
+
+
+# --- フォルダ名 → ホーム配下のリンク先ディレクトリの解決 ---------------------
+# LINK_TO_SUBDIR に "フォルダ名=ディレクトリ名" があればそのディレクトリ名を
+# 標準出力に返す (終了コード 0)。無ければ何も出さず非ゼロを返す。
+subdir_for() {
+  local folder="$1" pair
+  for pair in ${LINK_TO_SUBDIR[@]+"${LINK_TO_SUBDIR[@]}"}; do
+    case "$pair" in
+      "$folder="*)
+        printf '%s' "${pair#*=}"
+        return 0
+        ;;
+    esac
+  done
+  return 1
 }
 
 
@@ -259,6 +286,13 @@ if [ -d "$DOTFILES_DIR/.config" ]; then
         [ -e "$f" ] || continue
         [ -d "$f" ] && continue       # サブディレクトリは扱わない
         add_plan "$HOME/$(basename "$f")" "$f" "$name"
+      done
+    elif subdir="$(subdir_for "$name")"; then
+      # ファイル単位で ~/<subdir>/ にリンク (例: claude → ~/.claude/)
+      for f in "$src"/*; do
+        [ -e "$f" ] || continue
+        [ -d "$f" ] && continue       # サブディレクトリは扱わない
+        add_plan "$HOME/$subdir/$(basename "$f")" "$f" "$name"
       done
     else
       # ディレクトリごと ~/.config/<name> にリンク
